@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>陳家照片回憶錄 — 家庭專屬影音相簿</title>
+  
+  <!-- Web App / PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="陳家相簿">
+  <meta name="theme-color" content="#121316">
+  <link rel="apple-touch-icon" href="https://img.youtube.com/vi/8Qg4wBKaZ7w/hqdefault.jpg">
+
+  <style>
+    :root {
+      --bg-main: #121316;
+      --bg-card: #1c1e24;
+      --bg-card-hover: #252830;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --gold-primary: #d4af37;
+      --gold-light: #f5d77f;
+      --gold-dark: #997c22;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-red: #ef4444;
+      --radius: 14px;
+      --shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding-bottom: 80px;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(180deg, rgba(28,30,36,0.95) 0%, rgba(18,19,22,0.85) 100%);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 2.5rem 1.5rem 1.5rem;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--gold-light);
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(212, 175, 55, 0.25);
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 0.8rem;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--gold-light);
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.2rem;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .stat-item strong {
+      color: var(--gold-primary);
+    }
+
+    /* Search & Filter Controls */
+    .controls {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .search-wrapper {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 12px 20px 12px 45px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.25s ease;
+    }
+    .search-input:focus {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--gold-primary);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.5;
+      font-size: 1.1rem;
+    }
+    .clear-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: none;
+    }
+
+    /* Year Tabs Pill Bar */
+    .year-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 6px 4px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .year-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .year-tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .year-tab-btn:hover, .year-tab-btn.active {
+      background: var(--gold-primary);
+      color: #000;
+      font-weight: 700;
+      border-color: var(--gold-primary);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    /* Main Content */
+    main {
+      max-width: 1200px;
+      margin: 2rem auto 0;
+      padding: 0 1rem;
+    }
+
+    /* Playlist Section */
+    .playlist-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow);
+      transition: border-color 0.2s;
+    }
+    .playlist-section:hover {
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .playlist-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .playlist-title-area h2 {
+      font-size: 1.35rem;
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .playlist-title-area p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .playlist-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+      color: #000;
+    }
+    .btn-gold:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Videos Grid */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .video-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.25s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .video-card:hover {
+      transform: translateY(-4px);
+      background: var(--bg-card-hover);
+      border-color: rgba(212, 175, 55, 0.4);
+      box-shadow: 0 12px 24px -6px rgba(0,0,0,0.6);
+    }
+
+    .thumb-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      overflow: hidden;
+    }
+    .thumb-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .video-card:hover .thumb-img {
+      transform: scale(1.05);
+    }
+
+    .play-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid var(--gold-light);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-light);
+      font-size: 1.1rem;
+      transition: all 0.2s ease;
+    }
+    .video-card:hover .play-badge {
+      background: var(--gold-primary);
+      color: #000;
+      transform: translate(-50%, -50%) scale(1.15);
+    }
+
+    .hd-badge {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.8);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+
+    .video-info {
+      padding: 0.9rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .video-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--text-main);
+      margin-bottom: 0.8rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    .btn-card {
+      flex: 1;
+      text-align: center;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+    }
+
+    /* Modal Player */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 1rem;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 900px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+      display: flex;
+      flex-direction: column;
+      animation: zoomIn 0.25s ease;
+    }
+    @keyframes zoomIn {
+      from { transform: scale(0.95); }
+      to { transform: scale(1); }
+    }
+
+    .modal-video-wrapper {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+    }
+    .modal-video-wrapper iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      flex: 1;
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #22c55e;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 10px 22px;
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* Floating Back to Top */
+    .fab-top {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 48px;
+      height: 48px;
+      background: rgba(28, 30, 36, 0.85);
+      border: 1px solid var(--gold-primary);
+      border-radius: 50%;
+      color: var(--gold-light);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.25s ease;
+      z-index: 90;
+    }
+    .fab-top.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      header {
+        padding: 1.5rem 1rem 1rem;
+      }
+      h1 {
+        font-size: 1.45rem;
+      }
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+      .playlist-header {
+        flex-direction: column;
+      }
+      .playlist-actions {
+        width: 100%;
+      }
+      .playlist-actions .btn {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-container">
+      <div class="logo-badge">🌟 陳家專屬家庭記憶庫</div>
+      <h1>🎬 陳家照片回憶錄</h1>
+      <p class="subtitle">1980～2025 · 珍貴家庭影像與古典音樂聯播影集</p>
+
+      <div class="stats-bar">
+        <div class="stat-item">📁 收錄播放清單：<strong>25 個</strong></div>
+        <div class="stat-item">🎞️ 聯播影片總數：<strong>431 部</strong></div>
+        <div class="stat-item">🔒 YouTube 權限：<strong>不公開 (家人專屬)</strong></div>
+      </div>
+
+      <div class="controls">
+        <div class="search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" class="search-input" placeholder="搜尋想看的主題、地點或活動（例如：旗山、九族、越南、澳洲、結婚...）">
+          <button id="clearBtn" class="clear-btn">✕</button>
+        </div>
+
+        <div class="year-tabs" id="yearTabs">
+          <button class="year-tab-btn active" data-year="ALL">全部 (ALL)</button>
+          <!-- Dynamic Year Tabs injected by JS -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main id="mainContainer">
+    <!-- Playlists and Videos rendered dynamically -->
+  </main>
+
+  <!-- Modal Video Player -->
+  <div class="modal-backdrop" id="videoModal">
+    <div class="modal-content">
+      <div class="modal-video-wrapper">
+        <iframe id="modalIframe" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-title" id="modalTitle">影片標題</div>
+        <div class="modal-btns">
+          <button class="btn btn-gold" id="modalYtBtn">↗️ 在 YouTube 開啟</button>
+          <button class="btn btn-secondary" id="modalCopyBtn">📋 複製分享網址</button>
+          <button class="btn btn-secondary" id="modalCloseBtn">✕ 關閉</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">✅ 連結已成功複製到剪貼簿！</div>
+
+  <!-- Back to Top Button -->
+  <button class="fab-top" id="fabTop" title="返回頂部">▲</button>
+
+  <script>
+    const PLAYLISTS = [{"id": "PLNQergtX4bqs", "title": "舊照片翻拍珍貴回憶錄", "desc": "大學、當兵、結婚與早期家庭生活", "year": "早期", "url": "https://www.youtube.com/playlist?list=PLNQergtX4bqs", "count": 22, "videos": [{"index": 1, "title": "01_大學生活", "id": "XsK5OwEXzlw", "url": "https://www.youtube.com/watch?v=XsK5OwEXzlw", "thumb": "https://img.youtube.com/vi/XsK5OwEXzlw/mqdefault.jpg"}, {"index": 2, "title": "02_大學社團生活", "id": "QtNwmizSCJo", "url": "https://www.youtube.com/watch?v=QtNwmizSCJo", "thumb": "https://img.youtube.com/vi/QtNwmizSCJo/mqdefault.jpg"}, {"index": 3, "title": "03_當兵生涯", "id": "PZydeixr9A4", "url": "https://www.youtube.com/watch?v=PZydeixr9A4", "thumb": "https://img.youtube.com/vi/PZydeixr9A4/mqdefault.jpg"}, {"index": 4, "title": "04_導師工作", "id": "sqFtA9tutOc", "url": "https://www.youtube.com/watch?v=sqFtA9tutOc", "thumb": "https://img.youtube.com/vi/sqFtA9tutOc/mqdefault.jpg"}, {"index": 5, "title": "05_戀愛時期", "id": "9v0Ij77QEUE", "url": "https://www.youtube.com/watch?v=9v0Ij77QEUE", "thumb": "https://img.youtube.com/vi/9v0Ij77QEUE/mqdefault.jpg"}, {"index": 6, "title": "06_結婚時期", "id": "Nmej8Q-6Bz8", "url": "https://www.youtube.com/watch?v=Nmej8Q-6Bz8", "thumb": "https://img.youtube.com/vi/Nmej8Q-6Bz8/mqdefault.jpg"}, {"index": 7, "title": "07_家庭生活", "id": "EAGNGYAQU2Y", "url": "https://www.youtube.com/watch?v=EAGNGYAQU2Y", "thumb": "https://img.youtube.com/vi/EAGNGYAQU2Y/mqdefault.jpg"}, {"index": 8, "title": "08_家庭旅遊_Part1", "id": "DTtzfEPJyNM", "url": "https://www.youtube.com/watch?v=DTtzfEPJyNM", "thumb": "https://img.youtube.com/vi/DTtzfEPJyNM/mqdefault.jpg"}, {"index": 9, "title": "09_家庭旅遊_Part2", "id": "1mcJHsc6x8E", "url": "https://www.youtube.com/watch?v=1mcJHsc6x8E", "thumb": "https://img.youtube.com/vi/1mcJHsc6x8E/mqdefault.jpg"}, {"index": 10, "title": "10_家庭旅遊_Part3", "id": "0gbuu_7C87I", "url": "https://www.youtube.com/watch?v=0gbuu_7C87I", "thumb": "https://img.youtube.com/vi/0gbuu_7C87I/mqdefault.jpg"}, {"index": 11, "title": "11_孩子的出生系列_Part1", "id": "BrM6wVQoj2E", "url": "https://www.youtube.com/watch?v=BrM6wVQoj2E", "thumb": "https://img.youtube.com/vi/BrM6wVQoj2E/mqdefault.jpg"}, {"index": 12, "title": "12_孩子的出生系列_Part2", "id": "Q7SAv0qiEJw", "url": "https://www.youtube.com/watch?v=Q7SAv0qiEJw", "thumb": "https://img.youtube.com/vi/Q7SAv0qiEJw/mqdefault.jpg"}, {"index": 13, "title": "13_孩子的出生系列_Part3", "id": "DkRTB-ys-EY", "url": "https://www.youtube.com/watch?v=DkRTB-ys-EY", "thumb": "https://img.youtube.com/vi/DkRTB-ys-EY/mqdefault.jpg"}, {"index": 14, "title": "14_孩子的成長_Part1", "id": "2-EiiI_P0ns", "url": "https://www.youtube.com/watch?v=2-EiiI_P0ns", "thumb": "https://img.youtube.com/vi/2-EiiI_P0ns/mqdefault.jpg"}, {"index": 15, "title": "15_孩子的成長_Part2", "id": "RMRIXFDj10s", "url": "https://www.youtube.com/watch?v=RMRIXFDj10s", "thumb": "https://img.youtube.com/vi/RMRIXFDj10s/mqdefault.jpg"}, {"index": 16, "title": "16_孩子的成長_Part3", "id": "iovAPeoEoF0", "url": "https://www.youtube.com/watch?v=iovAPeoEoF0", "thumb": "https://img.youtube.com/vi/iovAPeoEoF0/mqdefault.jpg"}, {"index": 17, "title": "17_陳氏家族", "id": "FCQKp5V2XSI", "url": "https://www.youtube.com/watch?v=FCQKp5V2XSI", "thumb": "https://img.youtube.com/vi/FCQKp5V2XSI/mqdefault.jpg"}, {"index": 18, "title": "18_父親過世", "id": "kDLeZoZ3KN4", "url": "https://www.youtube.com/watch?v=kDLeZoZ3KN4", "thumb": "https://img.youtube.com/vi/kDLeZoZ3KN4/mqdefault.jpg"}, {"index": 19, "title": "19_親朋好友照片", "id": "gmIMaMzW8fA", "url": "https://www.youtube.com/watch?v=gmIMaMzW8fA", "thumb": "https://img.youtube.com/vi/gmIMaMzW8fA/mqdefault.jpg"}, {"index": 20, "title": "20_工作時期相關照片", "id": "MxM93keOCOM", "url": "https://www.youtube.com/watch?v=MxM93keOCOM", "thumb": "https://img.youtube.com/vi/MxM93keOCOM/mqdefault.jpg"}, {"index": 21, "title": "21_人本活動", "id": "GncnkxMkR2Y", "url": "https://www.youtube.com/watch?v=GncnkxMkR2Y", "thumb": "https://img.youtube.com/vi/GncnkxMkR2Y/mqdefault.jpg"}, {"index": 22, "title": "22_旅遊相關風景照片", "id": "uB8_YCN39RY", "url": "https://www.youtube.com/watch?v=uB8_YCN39RY", "thumb": "https://img.youtube.com/vi/uB8_YCN39RY/mqdefault.jpg"}]}, {"id": "PLFdCdERaDs84", "title": "2002年陳家照片回憶錄", "desc": "2002年全家旗山糖廠旅遊", "year": "2002", "url": "https://www.youtube.com/playlist?list=PLFdCdERaDs84", "count": 1, "videos": [{"index": 1, "title": "20020901全家照片-旗山糖廠", "id": "8Qg4wBKaZ7w", "url": "https://www.youtube.com/watch?v=8Qg4wBKaZ7w", "thumb": "https://img.youtube.com/vi/8Qg4wBKaZ7w/mqdefault.jpg"}]}, {"id": "PLE1q_ipGNbL0", "title": "2003年陳家照片回憶錄", "desc": "民國92年家人生活與旅遊回憶", "year": "2003", "url": "https://www.youtube.com/playlist?list=PLE1q_ipGNbL0", "count": 19, "videos": [{"index": 1, "title": "200308八月全家出遊合集", "id": "cDA8gRaiLpA", "url": "https://www.youtube.com/watch?v=cDA8gRaiLpA", "thumb": "https://img.youtube.com/vi/cDA8gRaiLpA/mqdefault.jpg"}, {"index": 2, "title": "20030112買相機試照", "id": "AeP5GklohoA", "url": "https://www.youtube.com/watch?v=AeP5GklohoA", "thumb": "https://img.youtube.com/vi/AeP5GklohoA/mqdefault.jpg"}, {"index": 3, "title": "20030118_19高雄正道公園之旅", "id": "rpBNCmLmfhE", "url": "https://www.youtube.com/watch?v=rpBNCmLmfhE", "thumb": "https://img.youtube.com/vi/rpBNCmLmfhE/mqdefault.jpg"}, {"index": 4, "title": "20030126台南虎頭埤之旅", "id": "3876Y8ko6fY", "url": "https://www.youtube.com/watch?v=3876Y8ko6fY", "thumb": "https://img.youtube.com/vi/3876Y8ko6fY/mqdefault.jpg"}, {"index": 5, "title": "20030128_30全家阿里山東埔之旅", "id": "XmkBxvp2iEg", "url": "https://www.youtube.com/watch?v=XmkBxvp2iEg", "thumb": "https://img.youtube.com/vi/XmkBxvp2iEg/mqdefault.jpg"}, {"index": 6, "title": "20030131除夕台南家與玩煙火", "id": "4XZ25i9725Y", "url": "https://www.youtube.com/watch?v=4XZ25i9725Y", "thumb": "https://img.youtube.com/vi/4XZ25i9725Y/mqdefault.jpg"}, {"index": 7, "title": "20030202_3佛光山旗山南化水庫", "id": "99XacWTF6Zo", "url": "https://www.youtube.com/watch?v=99XacWTF6Zo", "thumb": "https://img.youtube.com/vi/99XacWTF6Zo/mqdefault.jpg"}, {"index": 8, "title": "20030205張宇卿家玩與代天府烤肉", "id": "ecPRvLNzTUE", "url": "https://www.youtube.com/watch?v=ecPRvLNzTUE", "thumb": "https://img.youtube.com/vi/ecPRvLNzTUE/mqdefault.jpg"}, {"index": 9, "title": "20030209爬山記", "id": "CwUdYg3LmBc", "url": "https://www.youtube.com/watch?v=CwUdYg3LmBc", "thumb": "https://img.youtube.com/vi/CwUdYg3LmBc/mqdefault.jpg"}, {"index": 10, "title": "20030223尖山埤與烏樹林之旅", "id": "-dC5Yp1Paj4", "url": "https://www.youtube.com/watch?v=-dC5Yp1Paj4", "thumb": "https://img.youtube.com/vi/-dC5Yp1Paj4/mqdefault.jpg"}, {"index": 11, "title": "20030309關仔嶺紅葉公園與三月生活", "id": "gvQ596QMwJg", "url": "https://www.youtube.com/watch?v=gvQ596QMwJg", "thumb": "https://img.youtube.com/vi/gvQ596QMwJg/mqdefault.jpg"}, {"index": 12, "title": "20030420草嶺之旅", "id": "MXM8K8hN2FA", "url": "https://www.youtube.com/watch?v=MXM8K8hN2FA", "thumb": "https://img.youtube.com/vi/MXM8K8hN2FA/mqdefault.jpg"}, {"index": 13, "title": "20030531高雄柴山與旗津行", "id": "CO3LtfNzd90", "url": "https://www.youtube.com/watch?v=CO3LtfNzd90", "thumb": "https://img.youtube.com/vi/CO3LtfNzd90/mqdefault.jpg"}, {"index": 14, "title": "20030601_17自家拍與玫妃生日", "id": "0d7XiHESmY0", "url": "https://www.youtube.com/watch?v=0d7XiHESmY0", "thumb": "https://img.youtube.com/vi/0d7XiHESmY0/mqdefault.jpg"}, {"index": 15, "title": "20030629樟腦寮走獨立山登山", "id": "j-v9jGiYBnw", "url": "https://www.youtube.com/watch?v=j-v9jGiYBnw", "thumb": "https://img.youtube.com/vi/j-v9jGiYBnw/mqdefault.jpg"}, {"index": 16, "title": "20030706_13白河蓮花季與旗山美濃行", "id": "l0wGqowI8ds", "url": "https://www.youtube.com/watch?v=l0wGqowI8ds", "thumb": "https://img.youtube.com/vi/l0wGqowI8ds/mqdefault.jpg"}, {"index": 17, "title": "20030710水晶飾品編織紀錄", "id": "67r_akwD7h0", "url": "https://www.youtube.com/watch?v=67r_akwD7h0", "thumb": "https://img.youtube.com/vi/67r_akwD7h0/mqdefault.jpg"}, {"index": 18, "title": "20030720_24_暑假台北宜蘭梨山清境之旅", "id": "FGGoQAQ_Yyw", "url": "https://www.youtube.com/watch?v=FGGoQAQ_Yyw", "thumb": "https://img.youtube.com/vi/FGGoQAQ_Yyw/mqdefault.jpg"}, {"index": 19, "title": "20031214玉井之旅", "id": "h3iicoXy6PU", "url": "https://www.youtube.com/watch?v=h3iicoXy6PU", "thumb": "https://img.youtube.com/vi/h3iicoXy6PU/mqdefault.jpg"}]}, {"id": "PLXqQFPt0iAX4", "title": "2004年陳家照片回憶錄", "desc": "民國93年家人生活與旅遊回憶", "year": "2004", "url": "https://www.youtube.com/playlist?list=PLXqQFPt0iAX4", "count": 12, "videos": [{"index": 1, "title": "2004手機照片", "id": "zp-qdhZQ1sg", "url": "https://www.youtube.com/watch?v=zp-qdhZQ1sg", "thumb": "https://img.youtube.com/vi/zp-qdhZQ1sg/mqdefault.jpg"}, {"index": 2, "title": "20040122新年大鵬灣之旅", "id": "M9Zq2qXYV7E", "url": "https://www.youtube.com/watch?v=M9Zq2qXYV7E", "thumb": "https://img.youtube.com/vi/M9Zq2qXYV7E/mqdefault.jpg"}, {"index": 3, "title": "20040123大年初二佛光山之旅", "id": "LYMTL5IjruA", "url": "https://www.youtube.com/watch?v=LYMTL5IjruA", "thumb": "https://img.youtube.com/vi/LYMTL5IjruA/mqdefault.jpg"}, {"index": 4, "title": "20040126大年初五佛光山", "id": "HkgvixpnaaY", "url": "https://www.youtube.com/watch?v=HkgvixpnaaY", "thumb": "https://img.youtube.com/vi/HkgvixpnaaY/mqdefault.jpg"}, {"index": 5, "title": "20040131鹿耳門家人活動", "id": "6BvAsoi_UiE", "url": "https://www.youtube.com/watch?v=6BvAsoi_UiE", "thumb": "https://img.youtube.com/vi/6BvAsoi_UiE/mqdefault.jpg"}, {"index": 6, "title": "20040201淑芬安娜同事野外烤肉", "id": "FXimTveiw_k", "url": "https://www.youtube.com/watch?v=FXimTveiw_k", "thumb": "https://img.youtube.com/vi/FXimTveiw_k/mqdefault.jpg"}, {"index": 7, "title": "20040215家人頭像照片", "id": "VJnEDDBzS7k", "url": "https://www.youtube.com/watch?v=VJnEDDBzS7k", "thumb": "https://img.youtube.com/vi/VJnEDDBzS7k/mqdefault.jpg"}, {"index": 8, "title": "20040616帥廷畢業典禮", "id": "2Bl1ukkhVys", "url": "https://www.youtube.com/watch?v=2Bl1ukkhVys", "thumb": "https://img.youtube.com/vi/2Bl1ukkhVys/mqdefault.jpg"}, {"index": 9, "title": "20040704暑假台中行", "id": "9Gvm9SRhAOo", "url": "https://www.youtube.com/watch?v=9Gvm9SRhAOo", "thumb": "https://img.youtube.com/vi/9Gvm9SRhAOo/mqdefault.jpg"}, {"index": 10, "title": "20040730四十四屆科展頒獎", "id": "vfjK9SZCFNQ", "url": "https://www.youtube.com/watch?v=vfjK9SZCFNQ", "thumb": "https://img.youtube.com/vi/vfjK9SZCFNQ/mqdefault.jpg"}, {"index": 11, "title": "20040924四十四科展績優人員墾丁自然生態研習", "id": "jdvqsiMNVXg", "url": "https://www.youtube.com/watch?v=jdvqsiMNVXg", "thumb": "https://img.youtube.com/vi/jdvqsiMNVXg/mqdefault.jpg"}, {"index": 12, "title": "20041224_25教師會台東關山之旅", "id": "bxcgNJJ8mSA", "url": "https://www.youtube.com/watch?v=bxcgNJJ8mSA", "thumb": "https://img.youtube.com/vi/bxcgNJJ8mSA/mqdefault.jpg"}]}, {"id": "PLCsKuBO_AV3U", "title": "2005年陳家照片回憶錄", "desc": "民國94年家人生活與旅遊回憶", "year": "2005", "url": "https://www.youtube.com/playlist?list=PLCsKuBO_AV3U", "count": 9, "videos": [{"index": 1, "title": "20050129_31新竹大溪香格里拉之旅", "id": "spV_F7zCKCM", "url": "https://www.youtube.com/watch?v=spV_F7zCKCM", "thumb": "https://img.youtube.com/vi/spV_F7zCKCM/mqdefault.jpg"}, {"index": 2, "title": "20050208除夕全家合照", "id": "2yKFfWt1cGo", "url": "https://www.youtube.com/watch?v=2yKFfWt1cGo", "thumb": "https://img.youtube.com/vi/2yKFfWt1cGo/mqdefault.jpg"}, {"index": 3, "title": "20050417雄工澄清湖烤肉", "id": "i7xzwUVb1Ts", "url": "https://www.youtube.com/watch?v=i7xzwUVb1Ts", "thumb": "https://img.youtube.com/vi/i7xzwUVb1Ts/mqdefault.jpg"}, {"index": 4, "title": "20050424寶來來來山莊", "id": "vPat43mYg3Y", "url": "https://www.youtube.com/watch?v=vPat43mYg3Y", "thumb": "https://img.youtube.com/vi/vPat43mYg3Y/mqdefault.jpg"}, {"index": 5, "title": "20050617玫妃11歲生日", "id": "borBceUEUcE", "url": "https://www.youtube.com/watch?v=borBceUEUcE", "thumb": "https://img.youtube.com/vi/borBceUEUcE/mqdefault.jpg"}, {"index": 6, "title": "20050713_17暑假西海岸及淑芬淡江同學會", "id": "JP1n00PNvcI", "url": "https://www.youtube.com/watch?v=JP1n00PNvcI", "thumb": "https://img.youtube.com/vi/JP1n00PNvcI/mqdefault.jpg"}, {"index": 7, "title": "20050819_21暑假墾丁及淑芬淡江同學會", "id": "9a7YRAOBKdo", "url": "https://www.youtube.com/watch?v=9a7YRAOBKdo", "thumb": "https://img.youtube.com/vi/9a7YRAOBKdo/mqdefault.jpg"}, {"index": 8, "title": "20051016華山咖啡之旅", "id": "epj94a2tM18", "url": "https://www.youtube.com/watch?v=epj94a2tM18", "thumb": "https://img.youtube.com/vi/epj94a2tM18/mqdefault.jpg"}, {"index": 9, "title": "20051107曾文水庫山芙蓉之旅", "id": "CIesbv0in1E", "url": "https://www.youtube.com/watch?v=CIesbv0in1E", "thumb": "https://img.youtube.com/vi/CIesbv0in1E/mqdefault.jpg"}]}, {"id": "PLNiHyYREmjsE", "title": "2006年陳家照片回憶錄", "desc": "民國95年家人生活與旅遊回憶", "year": "2006", "url": "https://www.youtube.com/playlist?list=PLNiHyYREmjsE", "count": 8, "videos": [{"index": 1, "title": "20060129_30春節在佛光山", "id": "zIDnQrUk_I8", "url": "https://www.youtube.com/watch?v=zIDnQrUk_I8", "thumb": "https://img.youtube.com/vi/zIDnQrUk_I8/mqdefault.jpg"}, {"index": 2, "title": "20060305來義之旅", "id": "tL5fniiiF4c", "url": "https://www.youtube.com/watch?v=tL5fniiiF4c", "thumb": "https://img.youtube.com/vi/tL5fniiiF4c/mqdefault.jpg"}, {"index": 3, "title": "20060326高雄農場", "id": "JoBwaFnQW5Y", "url": "https://www.youtube.com/watch?v=JoBwaFnQW5Y", "thumb": "https://img.youtube.com/vi/JoBwaFnQW5Y/mqdefault.jpg"}, {"index": 4, "title": "20060521杉林溪之旅", "id": "zyajz0DVs3g", "url": "https://www.youtube.com/watch?v=zyajz0DVs3g", "thumb": "https://img.youtube.com/vi/zyajz0DVs3g/mqdefault.jpg"}, {"index": 5, "title": "20060621玫妃畢業晚會", "id": "ciheY67jHtQ", "url": "https://www.youtube.com/watch?v=ciheY67jHtQ", "thumb": "https://img.youtube.com/vi/ciheY67jHtQ/mqdefault.jpg"}, {"index": 6, "title": "20061130休假甲仙行", "id": "LLYd0wOoG8M", "url": "https://www.youtube.com/watch?v=LLYd0wOoG8M", "thumb": "https://img.youtube.com/vi/LLYd0wOoG8M/mqdefault.jpg"}, {"index": 7, "title": "20061209山芙蓉飯店", "id": "wmC0wCvyD5c", "url": "https://www.youtube.com/watch?v=wmC0wCvyD5c", "thumb": "https://img.youtube.com/vi/wmC0wCvyD5c/mqdefault.jpg"}, {"index": 8, "title": "20061214華山喝咖啡", "id": "t2hDyfEsgvU", "url": "https://www.youtube.com/watch?v=t2hDyfEsgvU", "thumb": "https://img.youtube.com/vi/t2hDyfEsgvU/mqdefault.jpg"}]}, {"id": "PLWcSEs4TfFqw", "title": "2007年陳家照片回憶錄", "desc": "民國96年家人生活與旅遊回憶", "year": "2007", "url": "https://www.youtube.com/playlist?list=PLWcSEs4TfFqw", "count": 5, "videos": [{"index": 1, "title": "20070127淑芬同學在安平", "id": "xtw_3YIHJoQ", "url": "https://www.youtube.com/watch?v=xtw_3YIHJoQ", "thumb": "https://img.youtube.com/vi/xtw_3YIHJoQ/mqdefault.jpg"}, {"index": 2, "title": "20070218_22新年", "id": "pVMM16eoSXE", "url": "https://www.youtube.com/watch?v=pVMM16eoSXE", "thumb": "https://img.youtube.com/vi/pVMM16eoSXE/mqdefault.jpg"}, {"index": 3, "title": "20070223屏東花果展覽會", "id": "VFP3tqgX1KQ", "url": "https://www.youtube.com/watch?v=VFP3tqgX1KQ", "thumb": "https://img.youtube.com/vi/VFP3tqgX1KQ/mqdefault.jpg"}, {"index": 4, "title": "20070304元宵節高雄燈會", "id": "rvcb0CvNEGc", "url": "https://www.youtube.com/watch?v=rvcb0CvNEGc", "thumb": "https://img.youtube.com/vi/rvcb0CvNEGc/mqdefault.jpg"}, {"index": 5, "title": "20070326手機照片", "id": "SiVx1YVfGdU", "url": "https://www.youtube.com/watch?v=SiVx1YVfGdU", "thumb": "https://img.youtube.com/vi/SiVx1YVfGdU/mqdefault.jpg"}]}, {"id": "PLY6ZFosJbQbM", "title": "2008年陳家照片回憶錄", "desc": "民國97年家人生活與旅遊回憶", "year": "2008", "url": "https://www.youtube.com/playlist?list=PLY6ZFosJbQbM", "count": 4, "videos": [{"index": 1, "title": "20080106英國領事館-淑芬同學", "id": "PBClnJiO2FA", "url": "https://www.youtube.com/watch?v=PBClnJiO2FA", "thumb": "https://img.youtube.com/vi/PBClnJiO2FA/mqdefault.jpg"}, {"index": 2, "title": "20080420休假藤枝行", "id": "qTCEcMfHF10", "url": "https://www.youtube.com/watch?v=qTCEcMfHF10", "thumb": "https://img.youtube.com/vi/qTCEcMfHF10/mqdefault.jpg"}, {"index": 3, "title": "20080817-18谷關溫泉之旅", "id": "_2eLJ-ujcz8", "url": "https://www.youtube.com/watch?v=_2eLJ-ujcz8", "thumb": "https://img.youtube.com/vi/_2eLJ-ujcz8/mqdefault.jpg"}, {"index": 4, "title": "20081128-29日月潭科展績優人員之旅", "id": "vWNmOnrMQnM", "url": "https://www.youtube.com/watch?v=vWNmOnrMQnM", "thumb": "https://img.youtube.com/vi/vWNmOnrMQnM/mqdefault.jpg"}]}, {"id": "PLcXLcCKMUSbo", "title": "2009年陳家照片回憶錄", "desc": "民國98年家人生活與旅遊回憶", "year": "2009", "url": "https://www.youtube.com/playlist?list=PLcXLcCKMUSbo", "count": 5, "videos": [{"index": 1, "title": "20090101回台南騎自行車", "id": "g7urKSsD3o0", "url": "https://www.youtube.com/watch?v=g7urKSsD3o0", "thumb": "https://img.youtube.com/vi/g7urKSsD3o0/mqdefault.jpg"}, {"index": 2, "title": "20090214新年合照", "id": "hHMAZvmYbTE", "url": "https://www.youtube.com/watch?v=hHMAZvmYbTE", "thumb": "https://img.youtube.com/vi/hHMAZvmYbTE/mqdefault.jpg"}, {"index": 3, "title": "20091026阿公店水庫之行", "id": "4wn2S9ZOmWA", "url": "https://www.youtube.com/watch?v=4wn2S9ZOmWA", "thumb": "https://img.youtube.com/vi/4wn2S9ZOmWA/mqdefault.jpg"}, {"index": 4, "title": "20091107旗津自行車", "id": "8Ibzr5yAimI", "url": "https://www.youtube.com/watch?v=8Ibzr5yAimI", "thumb": "https://img.youtube.com/vi/8Ibzr5yAimI/mqdefault.jpg"}, {"index": 5, "title": "20091212生物能氣功南投授證", "id": "FQ8QRhe1UZw", "url": "https://www.youtube.com/watch?v=FQ8QRhe1UZw", "thumb": "https://img.youtube.com/vi/FQ8QRhe1UZw/mqdefault.jpg"}]}, {"id": "PLWpK3SnJHVMg", "title": "2010年陳家照片回憶錄", "desc": "民國99年家人生活與旅遊回憶", "year": "2010", "url": "https://www.youtube.com/playlist?list=PLWpK3SnJHVMg", "count": 16, "videos": [{"index": 1, "title": "201002新年合照", "id": "rJ7t64Y9G_s", "url": "https://www.youtube.com/watch?v=rJ7t64Y9G_s", "thumb": "https://img.youtube.com/vi/rJ7t64Y9G_s/mqdefault.jpg"}, {"index": 2, "title": "20100129阿公店環湖", "id": "ztRD8MK5w7E", "url": "https://www.youtube.com/watch?v=ztRD8MK5w7E", "thumb": "https://img.youtube.com/vi/ztRD8MK5w7E/mqdefault.jpg"}, {"index": 3, "title": "20100214高雄自行車", "id": "DmKSEeTcdUc", "url": "https://www.youtube.com/watch?v=DmKSEeTcdUc", "thumb": "https://img.youtube.com/vi/DmKSEeTcdUc/mqdefault.jpg"}, {"index": 4, "title": "20100314阿公店水庫", "id": "LkBeMxdEK2Q", "url": "https://www.youtube.com/watch?v=LkBeMxdEK2Q", "thumb": "https://img.youtube.com/vi/LkBeMxdEK2Q/mqdefault.jpg"}, {"index": 5, "title": "20100321_22奮起湖-阿里山之旅", "id": "SlKC7lXjNpI", "url": "https://www.youtube.com/watch?v=SlKC7lXjNpI", "thumb": "https://img.youtube.com/vi/SlKC7lXjNpI/mqdefault.jpg"}, {"index": 6, "title": "20100326_27台北陽明山自由行", "id": "_OCCfGkENCk", "url": "https://www.youtube.com/watch?v=_OCCfGkENCk", "thumb": "https://img.youtube.com/vi/_OCCfGkENCk/mqdefault.jpg"}, {"index": 7, "title": "20100410淑芬老人之家表演", "id": "PbPTR9PM89k", "url": "https://www.youtube.com/watch?v=PbPTR9PM89k", "thumb": "https://img.youtube.com/vi/PbPTR9PM89k/mqdefault.jpg"}, {"index": 8, "title": "20100410美濃自行車自由行", "id": "G3x14li3kkY", "url": "https://www.youtube.com/watch?v=G3x14li3kkY", "thumb": "https://img.youtube.com/vi/G3x14li3kkY/mqdefault.jpg"}, {"index": 9, "title": "20100508_09母親節台北行", "id": "fDkkLlGBH1Q", "url": "https://www.youtube.com/watch?v=fDkkLlGBH1Q", "thumb": "https://img.youtube.com/vi/fDkkLlGBH1Q/mqdefault.jpg"}, {"index": 10, "title": "20100530氣功同學遊東石漁港", "id": "t4B3akNc5sE", "url": "https://www.youtube.com/watch?v=t4B3akNc5sE", "thumb": "https://img.youtube.com/vi/t4B3akNc5sE/mqdefault.jpg"}, {"index": 11, "title": "20100711嘉義竹崎二日遊", "id": "mmblvVpjZ3I", "url": "https://www.youtube.com/watch?v=mmblvVpjZ3I", "thumb": "https://img.youtube.com/vi/mmblvVpjZ3I/mqdefault.jpg"}, {"index": 12, "title": "20100807彰化鹿港遊", "id": "iAC7LTIDJVQ", "url": "https://www.youtube.com/watch?v=iAC7LTIDJVQ", "thumb": "https://img.youtube.com/vi/iAC7LTIDJVQ/mqdefault.jpg"}, {"index": 13, "title": "20101003核桃糕製作", "id": "H-U2xBeUPh0", "url": "https://www.youtube.com/watch?v=H-U2xBeUPh0", "thumb": "https://img.youtube.com/vi/H-U2xBeUPh0/mqdefault.jpg"}, {"index": 14, "title": "20101205員林民俗村氣功受證", "id": "VwMkMiAiFzQ", "url": "https://www.youtube.com/watch?v=VwMkMiAiFzQ", "thumb": "https://img.youtube.com/vi/VwMkMiAiFzQ/mqdefault.jpg"}, {"index": 15, "title": "20101212佛光山水陸法會圓滿日", "id": "ocf0ufw-BW0", "url": "https://www.youtube.com/watch?v=ocf0ufw-BW0", "thumb": "https://img.youtube.com/vi/ocf0ufw-BW0/mqdefault.jpg"}, {"index": 16, "title": "20101218教師會麒麟潭及溪頭之旅", "id": "LU2p89FIjxg", "url": "https://www.youtube.com/watch?v=LU2p89FIjxg", "thumb": "https://img.youtube.com/vi/LU2p89FIjxg/mqdefault.jpg"}]}, {"id": "PLUKY5UcRevhw", "title": "2011年陳家照片回憶錄", "desc": "民國100年家人生活與旅遊回憶", "year": "2011", "url": "https://www.youtube.com/playlist?list=PLUKY5UcRevhw", "count": 17, "videos": [{"index": 1, "title": "20110130台南家最後畫面", "id": "FCzoON8TQOc", "url": "https://www.youtube.com/watch?v=FCzoON8TQOc", "thumb": "https://img.youtube.com/vi/FCzoON8TQOc/mqdefault.jpg"}, {"index": 2, "title": "20110306佛光山旗山自行車行", "id": "kqgqnjx0nL4", "url": "https://www.youtube.com/watch?v=kqgqnjx0nL4", "thumb": "https://img.youtube.com/vi/kqgqnjx0nL4/mqdefault.jpg"}, {"index": 3, "title": "20110318_19台北花博之旅", "id": "Xm_ZBuP0Yd4", "url": "https://www.youtube.com/watch?v=Xm_ZBuP0Yd4", "thumb": "https://img.youtube.com/vi/Xm_ZBuP0Yd4/mqdefault.jpg"}, {"index": 4, "title": "20110327劍湖山氣功教聯會", "id": "Y7lyzyOIQoA", "url": "https://www.youtube.com/watch?v=Y7lyzyOIQoA", "thumb": "https://img.youtube.com/vi/Y7lyzyOIQoA/mqdefault.jpg"}, {"index": 5, "title": "20110508佛光山佛陀紀念館", "id": "sOHlcuQUto8", "url": "https://www.youtube.com/watch?v=sOHlcuQUto8", "thumb": "https://img.youtube.com/vi/sOHlcuQUto8/mqdefault.jpg"}, {"index": 6, "title": "20110606柴山", "id": "X0cz5fEeGyE", "url": "https://www.youtube.com/watch?v=X0cz5fEeGyE", "thumb": "https://img.youtube.com/vi/X0cz5fEeGyE/mqdefault.jpg"}, {"index": 7, "title": "20110710高雄_上海", "id": "u-uGleMXmV0", "url": "https://www.youtube.com/watch?v=u-uGleMXmV0", "thumb": "https://img.youtube.com/vi/u-uGleMXmV0/mqdefault.jpg"}, {"index": 8, "title": "20110711上海", "id": "PIRewHwcC6k", "url": "https://www.youtube.com/watch?v=PIRewHwcC6k", "thumb": "https://img.youtube.com/vi/PIRewHwcC6k/mqdefault.jpg"}, {"index": 9, "title": "20110712上海_蘇州", "id": "kDy3VsDlde8", "url": "https://www.youtube.com/watch?v=kDy3VsDlde8", "thumb": "https://img.youtube.com/vi/kDy3VsDlde8/mqdefault.jpg"}, {"index": 10, "title": "20110713蘇州_南京", "id": "r-QOuOuIqTc", "url": "https://www.youtube.com/watch?v=r-QOuOuIqTc", "thumb": "https://img.youtube.com/vi/r-QOuOuIqTc/mqdefault.jpg"}, {"index": 11, "title": "20110714南京_無錫", "id": "0PvN0Lk0Ih4", "url": "https://www.youtube.com/watch?v=0PvN0Lk0Ih4", "thumb": "https://img.youtube.com/vi/0PvN0Lk0Ih4/mqdefault.jpg"}, {"index": 12, "title": "20110715無錫_烏鎮_杭州", "id": "gtlaCxtObBY", "url": "https://www.youtube.com/watch?v=gtlaCxtObBY", "thumb": "https://img.youtube.com/vi/gtlaCxtObBY/mqdefault.jpg"}, {"index": 13, "title": "20110716杭州_高雄", "id": "H_Ce9PbdziM", "url": "https://www.youtube.com/watch?v=H_Ce9PbdziM", "thumb": "https://img.youtube.com/vi/H_Ce9PbdziM/mqdefault.jpg"}, {"index": 14, "title": "20111101新手機S2試拍家人照片", "id": "SBEbIO2sDJk", "url": "https://www.youtube.com/watch?v=SBEbIO2sDJk", "thumb": "https://img.youtube.com/vi/SBEbIO2sDJk/mqdefault.jpg"}, {"index": 15, "title": "20111206冒煙的喬聚餐", "id": "4W_-zIJN2iw", "url": "https://www.youtube.com/watch?v=4W_-zIJN2iw", "thumb": "https://img.youtube.com/vi/4W_-zIJN2iw/mqdefault.jpg"}, {"index": 16, "title": "20111208自己生日", "id": "O5HyH8OqgP0", "url": "https://www.youtube.com/watch?v=O5HyH8OqgP0", "thumb": "https://img.youtube.com/vi/O5HyH8OqgP0/mqdefault.jpg"}, {"index": 17, "title": "20111217台北阮劍宜新婚", "id": "ufqlnsJSV9M", "url": "https://www.youtube.com/watch?v=ufqlnsJSV9M", "thumb": "https://img.youtube.com/vi/ufqlnsJSV9M/mqdefault.jpg"}]}, {"id": "PLV9VwbxiM8ZA", "title": "2012年陳家照片回憶錄", "desc": "民國101年家人生活與旅遊回憶", "year": "2012", "url": "https://www.youtube.com/playlist?list=PLV9VwbxiM8ZA", "count": 12, "videos": [{"index": 1, "title": "2012家庭照片", "id": "dQfKUV-jF30", "url": "https://www.youtube.com/watch?v=dQfKUV-jF30", "thumb": "https://img.youtube.com/vi/dQfKUV-jF30/mqdefault.jpg"}, {"index": 2, "title": "20120127佛光山祭淑芬爸爸忌日", "id": "-e7oV-9GnUA", "url": "https://www.youtube.com/watch?v=-e7oV-9GnUA", "thumb": "https://img.youtube.com/vi/-e7oV-9GnUA/mqdefault.jpg"}, {"index": 3, "title": "20120211生物能氣功科工館早場自強活動新社古堡", "id": "94jWh71-dtA", "url": "https://www.youtube.com/watch?v=94jWh71-dtA", "thumb": "https://img.youtube.com/vi/94jWh71-dtA/mqdefault.jpg"}, {"index": 4, "title": "20120517大愛村及永齡有機農場參訪", "id": "CxHCpfEgTYU", "url": "https://www.youtube.com/watch?v=CxHCpfEgTYU", "thumb": "https://img.youtube.com/vi/CxHCpfEgTYU/mqdefault.jpg"}, {"index": 5, "title": "20120627淑芬同事活動-台南之旅", "id": "-jgVkXaJRf0", "url": "https://www.youtube.com/watch?v=-jgVkXaJRf0", "thumb": "https://img.youtube.com/vi/-jgVkXaJRf0/mqdefault.jpg"}, {"index": 6, "title": "20120708里民活動-墾丁社頂公園", "id": "PY1zntJYW9w", "url": "https://www.youtube.com/watch?v=PY1zntJYW9w", "thumb": "https://img.youtube.com/vi/PY1zntJYW9w/mqdefault.jpg"}, {"index": 7, "title": "20120806觀賞會動的清明上河圖", "id": "8nhb_SzsOuQ", "url": "https://www.youtube.com/watch?v=8nhb_SzsOuQ", "thumb": "https://img.youtube.com/vi/8nhb_SzsOuQ/mqdefault.jpg"}, {"index": 8, "title": "20120819台北十分平溪行", "id": "2uxREEtAlLE", "url": "https://www.youtube.com/watch?v=2uxREEtAlLE", "thumb": "https://img.youtube.com/vi/2uxREEtAlLE/mqdefault.jpg"}, {"index": 9, "title": "20120929旗津自由行", "id": "TQh-UAGJ18I", "url": "https://www.youtube.com/watch?v=TQh-UAGJ18I", "thumb": "https://img.youtube.com/vi/TQh-UAGJ18I/mqdefault.jpg"}, {"index": 10, "title": "20121010關仔嶺大凍山爬山", "id": "ZlsTGrGyL2k", "url": "https://www.youtube.com/watch?v=ZlsTGrGyL2k", "thumb": "https://img.youtube.com/vi/ZlsTGrGyL2k/mqdefault.jpg"}, {"index": 11, "title": "20121031帶媽去旗津", "id": "WotDIaVrW5s", "url": "https://www.youtube.com/watch?v=WotDIaVrW5s", "thumb": "https://img.youtube.com/vi/WotDIaVrW5s/mqdefault.jpg"}, {"index": 12, "title": "20121118橋頭花季", "id": "fB3ML9F8Kgc", "url": "https://www.youtube.com/watch?v=fB3ML9F8Kgc", "thumb": "https://img.youtube.com/vi/fB3ML9F8Kgc/mqdefault.jpg"}]}, {"id": "PLGIoQogZtmcw", "title": "2013年陳家照片回憶錄", "desc": "民國102年家人生活與旅遊回憶", "year": "2013", "url": "https://www.youtube.com/playlist?list=PLGIoQogZtmcw", "count": 11, "videos": [{"index": 1, "title": "2013家人照片", "id": "tYK6RcGi6FE", "url": "https://www.youtube.com/watch?v=tYK6RcGi6FE", "thumb": "https://img.youtube.com/vi/tYK6RcGi6FE/mqdefault.jpg"}, {"index": 2, "title": "20130209新年祭祖", "id": "CDwXh5P90qw", "url": "https://www.youtube.com/watch?v=CDwXh5P90qw", "thumb": "https://img.youtube.com/vi/CDwXh5P90qw/mqdefault.jpg"}, {"index": 3, "title": "20130621大樹舊鉄橋", "id": "Vv-Z13xoQNE", "url": "https://www.youtube.com/watch?v=Vv-Z13xoQNE", "thumb": "https://img.youtube.com/vi/Vv-Z13xoQNE/mqdefault.jpg"}, {"index": 4, "title": "20130810-17大陸廈門東山行_1", "id": "SfY-qO7w3cY", "url": "https://www.youtube.com/watch?v=SfY-qO7w3cY", "thumb": "https://img.youtube.com/vi/SfY-qO7w3cY/mqdefault.jpg"}, {"index": 5, "title": "20130810-17大陸廈門東山行_2", "id": "X2SHmZWFnmE", "url": "https://www.youtube.com/watch?v=X2SHmZWFnmE", "thumb": "https://img.youtube.com/vi/X2SHmZWFnmE/mqdefault.jpg"}, {"index": 6, "title": "20130810-17大陸廈門東山行_3", "id": "RcfnJCz8wP8", "url": "https://www.youtube.com/watch?v=RcfnJCz8wP8", "thumb": "https://img.youtube.com/vi/RcfnJCz8wP8/mqdefault.jpg"}, {"index": 7, "title": "20130810-17大陸廈門東山行_4", "id": "3Ad9TwCpO5Y", "url": "https://www.youtube.com/watch?v=3Ad9TwCpO5Y", "thumb": "https://img.youtube.com/vi/3Ad9TwCpO5Y/mqdefault.jpg"}, {"index": 8, "title": "20130901美濃一頁書民宿", "id": "94inAJi4zh0", "url": "https://www.youtube.com/watch?v=94inAJi4zh0", "thumb": "https://img.youtube.com/vi/94inAJi4zh0/mqdefault.jpg"}, {"index": 9, "title": "20131006佛光山", "id": "nHCSGGJJ1ks", "url": "https://www.youtube.com/watch?v=nHCSGGJJ1ks", "thumb": "https://img.youtube.com/vi/nHCSGGJJ1ks/mqdefault.jpg"}, {"index": 10, "title": "20131010高雄黃色小鴨", "id": "eeeJR64VbaY", "url": "https://www.youtube.com/watch?v=eeeJR64VbaY", "thumb": "https://img.youtube.com/vi/eeeJR64VbaY/mqdefault.jpg"}, {"index": 11, "title": "20131020台南四草旅遊-淑芬同學會", "id": "j78SSQ42hVg", "url": "https://www.youtube.com/watch?v=j78SSQ42hVg", "thumb": "https://img.youtube.com/vi/j78SSQ42hVg/mqdefault.jpg"}]}, {"id": "PLYJrs23viwCc", "title": "2014年陳家照片回憶錄", "desc": "民國103年家人生活與旅遊回憶", "year": "2014", "url": "https://www.youtube.com/playlist?list=PLYJrs23viwCc", "count": 22, "videos": [{"index": 1, "title": "2014家人照片", "id": "STRN1TuCtaM", "url": "https://www.youtube.com/watch?v=STRN1TuCtaM", "thumb": "https://img.youtube.com/vi/STRN1TuCtaM/mqdefault.jpg"}, {"index": 2, "title": "20140131新年合照", "id": "-MunpDLqPRI", "url": "https://www.youtube.com/watch?v=-MunpDLqPRI", "thumb": "https://img.youtube.com/vi/-MunpDLqPRI/mqdefault.jpg"}, {"index": 3, "title": "20140302安平尋舊", "id": "pRgPpQrbv3E", "url": "https://www.youtube.com/watch?v=pRgPpQrbv3E", "thumb": "https://img.youtube.com/vi/pRgPpQrbv3E/mqdefault.jpg"}, {"index": 4, "title": "20140308台灣國際蘭展", "id": "SBmwfg9PTMQ", "url": "https://www.youtube.com/watch?v=SBmwfg9PTMQ", "thumb": "https://img.youtube.com/vi/SBmwfg9PTMQ/mqdefault.jpg"}, {"index": 5, "title": "20140315獨立山登山搭小火車", "id": "6DeGa1IQ_As", "url": "https://www.youtube.com/watch?v=6DeGa1IQ_As", "thumb": "https://img.youtube.com/vi/6DeGa1IQ_As/mqdefault.jpg"}, {"index": 6, "title": "20140322英文班淨園烤肉活動", "id": "mbe8VZo4LUs", "url": "https://www.youtube.com/watch?v=mbe8VZo4LUs", "thumb": "https://img.youtube.com/vi/mbe8VZo4LUs/mqdefault.jpg"}, {"index": 7, "title": "20140323勞委會中辦最後一次命題", "id": "HBQq1QWx8bA", "url": "https://www.youtube.com/watch?v=HBQq1QWx8bA", "thumb": "https://img.youtube.com/vi/HBQq1QWx8bA/mqdefault.jpg"}, {"index": 8, "title": "20140404清明節元享寺拜拜-試新購手相機Nikon S9400", "id": "iyP1YGoaywc", "url": "https://www.youtube.com/watch?v=iyP1YGoaywc", "thumb": "https://img.youtube.com/vi/iyP1YGoaywc/mqdefault.jpg"}, {"index": 9, "title": "20140405澄清湖散步", "id": "QiOTQxU_EL4", "url": "https://www.youtube.com/watch?v=QiOTQxU_EL4", "thumb": "https://img.youtube.com/vi/QiOTQxU_EL4/mqdefault.jpg"}, {"index": 10, "title": "20140418安平小學同學會", "id": "RsTmgVtvCvk", "url": "https://www.youtube.com/watch?v=RsTmgVtvCvk", "thumb": "https://img.youtube.com/vi/RsTmgVtvCvk/mqdefault.jpg"}, {"index": 11, "title": "20140425台中高工評鑑市區停留", "id": "l_xHvzwk8iM", "url": "https://www.youtube.com/watch?v=l_xHvzwk8iM", "thumb": "https://img.youtube.com/vi/l_xHvzwk8iM/mqdefault.jpg"}, {"index": 12, "title": "20140426文化中心社大紫檀花季", "id": "gpEDKh5KsvQ", "url": "https://www.youtube.com/watch?v=gpEDKh5KsvQ", "thumb": "https://img.youtube.com/vi/gpEDKh5KsvQ/mqdefault.jpg"}, {"index": 13, "title": "20140511佛光山佛誕節浴佛", "id": "AVVJScTRN8c", "url": "https://www.youtube.com/watch?v=AVVJScTRN8c", "thumb": "https://img.youtube.com/vi/AVVJScTRN8c/mqdefault.jpg"}, {"index": 14, "title": "20140525新威及六龜一日農夫", "id": "vp0HOlh8oes", "url": "https://www.youtube.com/watch?v=vp0HOlh8oes", "thumb": "https://img.youtube.com/vi/vp0HOlh8oes/mqdefault.jpg"}, {"index": 15, "title": "20140706彰化溪州花博展", "id": "T_isSt1HyCk", "url": "https://www.youtube.com/watch?v=T_isSt1HyCk", "thumb": "https://img.youtube.com/vi/T_isSt1HyCk/mqdefault.jpg"}, {"index": 16, "title": "20140713里民活動", "id": "iLxvuF_gssA", "url": "https://www.youtube.com/watch?v=iLxvuF_gssA", "thumb": "https://img.youtube.com/vi/iLxvuF_gssA/mqdefault.jpg"}, {"index": 17, "title": "20140722搭火車活動", "id": "TBvqKDMYZZ4", "url": "https://www.youtube.com/watch?v=TBvqKDMYZZ4", "thumb": "https://img.youtube.com/vi/TBvqKDMYZZ4/mqdefault.jpg"}, {"index": 18, "title": "20140731-0804大陸探親_1", "id": "30rdSqJf2jw", "url": "https://www.youtube.com/watch?v=30rdSqJf2jw", "thumb": "https://img.youtube.com/vi/30rdSqJf2jw/mqdefault.jpg"}, {"index": 19, "title": "20140731-0804大陸探親_2", "id": "qwrRor_bXQo", "url": "https://www.youtube.com/watch?v=qwrRor_bXQo", "thumb": "https://img.youtube.com/vi/qwrRor_bXQo/mqdefault.jpg"}, {"index": 20, "title": "20140810中元普渡及漢神家庭聚餐", "id": "xN-FsAgMXQg", "url": "https://www.youtube.com/watch?v=xN-FsAgMXQg", "thumb": "https://img.youtube.com/vi/xN-FsAgMXQg/mqdefault.jpg"}, {"index": 21, "title": "20140814媽在長青活動中心", "id": "0EiC-_TT6ag", "url": "https://www.youtube.com/watch?v=0EiC-_TT6ag", "thumb": "https://img.youtube.com/vi/0EiC-_TT6ag/mqdefault.jpg"}, {"index": 22, "title": "20141202台南師公生日拜拜", "id": "g-TKP9M_u4g", "url": "https://www.youtube.com/watch?v=g-TKP9M_u4g", "thumb": "https://img.youtube.com/vi/g-TKP9M_u4g/mqdefault.jpg"}]}, {"id": "PLXQ-92-ieyus", "title": "2015年陳家照片回憶錄", "desc": "民國104年家人生活與旅遊回憶", "year": "2015", "url": "https://www.youtube.com/playlist?list=PLXQ-92-ieyus", "count": 32, "videos": [{"index": 1, "title": "2015家人照片", "id": "dQN6yWoRDpM", "url": "https://www.youtube.com/watch?v=dQN6yWoRDpM", "thumb": "https://img.youtube.com/vi/dQN6yWoRDpM/mqdefault.jpg"}, {"index": 2, "title": "2015小學同學翻拍-老照片", "id": "BklLmYbrOQU", "url": "https://www.youtube.com/watch?v=BklLmYbrOQU", "thumb": "https://img.youtube.com/vi/BklLmYbrOQU/mqdefault.jpg"}, {"index": 3, "title": "20150101梅山及荷蘭村之旅", "id": "Yry4C7cDK28", "url": "https://www.youtube.com/watch?v=Yry4C7cDK28", "thumb": "https://img.youtube.com/vi/Yry4C7cDK28/mqdefault.jpg"}, {"index": 4, "title": "20150103梅嶺之旅", "id": "iA2ZyutcmfU", "url": "https://www.youtube.com/watch?v=iA2ZyutcmfU", "thumb": "https://img.youtube.com/vi/iA2ZyutcmfU/mqdefault.jpg"}, {"index": 5, "title": "20150219大年初二佛光山見小阿姨", "id": "qK8vHb78lpY", "url": "https://www.youtube.com/watch?v=qK8vHb78lpY", "thumb": "https://img.youtube.com/vi/qK8vHb78lpY/mqdefault.jpg"}, {"index": 6, "title": "20150219大年初二義大世界", "id": "XPvOyaHEC1k", "url": "https://www.youtube.com/watch?v=XPvOyaHEC1k", "thumb": "https://img.youtube.com/vi/XPvOyaHEC1k/mqdefault.jpg"}, {"index": 7, "title": "20150220元亨寺祭拜爸爸", "id": "lSNNyP9Dqhk", "url": "https://www.youtube.com/watch?v=lSNNyP9Dqhk", "thumb": "https://img.youtube.com/vi/lSNNyP9Dqhk/mqdefault.jpg"}, {"index": 8, "title": "20150221駁二特區一日遊", "id": "H3gGVurNJ68", "url": "https://www.youtube.com/watch?v=H3gGVurNJ68", "thumb": "https://img.youtube.com/vi/H3gGVurNJ68/mqdefault.jpg"}, {"index": 9, "title": "20150223爸爸忌日及佛光山合照", "id": "b7WysJN2bJM", "url": "https://www.youtube.com/watch?v=b7WysJN2bJM", "thumb": "https://img.youtube.com/vi/b7WysJN2bJM/mqdefault.jpg"}, {"index": 10, "title": "20150227佛陀紀念館", "id": "DP_90zXvTZs", "url": "https://www.youtube.com/watch?v=DP_90zXvTZs", "thumb": "https://img.youtube.com/vi/DP_90zXvTZs/mqdefault.jpg"}, {"index": 11, "title": "20150228台南中山公園", "id": "QDXm-cCFMmI", "url": "https://www.youtube.com/watch?v=QDXm-cCFMmI", "thumb": "https://img.youtube.com/vi/QDXm-cCFMmI/mqdefault.jpg"}, {"index": 12, "title": "20150329凱旋國小散步", "id": "HiN3X5KeSNs", "url": "https://www.youtube.com/watch?v=HiN3X5KeSNs", "thumb": "https://img.youtube.com/vi/HiN3X5KeSNs/mqdefault.jpg"}, {"index": 13, "title": "20150510佛光山午餐", "id": "UiLcGrjdKYA", "url": "https://www.youtube.com/watch?v=UiLcGrjdKYA", "thumb": "https://img.youtube.com/vi/UiLcGrjdKYA/mqdefault.jpg"}, {"index": 14, "title": "20150516港都社大紫薇季", "id": "8mEzZDm2nzA", "url": "https://www.youtube.com/watch?v=8mEzZDm2nzA", "thumb": "https://img.youtube.com/vi/8mEzZDm2nzA/mqdefault.jpg"}, {"index": 15, "title": "20150609鑄三甲開同學會", "id": "vBx6ZvCJylI", "url": "https://www.youtube.com/watch?v=vBx6ZvCJylI", "thumb": "https://img.youtube.com/vi/vBx6ZvCJylI/mqdefault.jpg"}, {"index": 16, "title": "20150620六堆文化園區", "id": "-1LYU7kUQQ4", "url": "https://www.youtube.com/watch?v=-1LYU7kUQQ4", "thumb": "https://img.youtube.com/vi/-1LYU7kUQQ4/mqdefault.jpg"}, {"index": 17, "title": "20150626-27台北行及宜蘭見永玲", "id": "U7Y3HQ4vxGc", "url": "https://www.youtube.com/watch?v=U7Y3HQ4vxGc", "thumb": "https://img.youtube.com/vi/U7Y3HQ4vxGc/mqdefault.jpg"}, {"index": 18, "title": "20150705阮劍宜來高雄", "id": "zJJ0dklHebk", "url": "https://www.youtube.com/watch?v=zJJ0dklHebk", "thumb": "https://img.youtube.com/vi/zJJ0dklHebk/mqdefault.jpg"}, {"index": 19, "title": "20150714到田中訪黃順遠", "id": "LhuiIkoggnU", "url": "https://www.youtube.com/watch?v=LhuiIkoggnU", "thumb": "https://img.youtube.com/vi/LhuiIkoggnU/mqdefault.jpg"}, {"index": 20, "title": "20150718原住民文化園區", "id": "mIRrmZLP9rw", "url": "https://www.youtube.com/watch?v=mIRrmZLP9rw", "thumb": "https://img.youtube.com/vi/mIRrmZLP9rw/mqdefault.jpg"}, {"index": 21, "title": "20150729台南三舅媽家拜阿公", "id": "lpE9-K_dAVo", "url": "https://www.youtube.com/watch?v=lpE9-K_dAVo", "thumb": "https://img.youtube.com/vi/lpE9-K_dAVo/mqdefault.jpg"}, {"index": 22, "title": "20150803-9大陸返鄉探親", "id": "TeW2Pzn1yJU", "url": "https://www.youtube.com/watch?v=TeW2Pzn1yJU", "thumb": "https://img.youtube.com/vi/TeW2Pzn1yJU/mqdefault.jpg"}, {"index": 23, "title": "20150815-17宜蘭黃順遠雙連埤_1", "id": "OifS6Q8dVz8", "url": "https://www.youtube.com/watch?v=OifS6Q8dVz8", "thumb": "https://img.youtube.com/vi/OifS6Q8dVz8/mqdefault.jpg"}, {"index": 24, "title": "20150815-17宜蘭黃順遠雙連埤_2", "id": "kbehQJp83mA", "url": "https://www.youtube.com/watch?v=kbehQJp83mA", "thumb": "https://img.youtube.com/vi/kbehQJp83mA/mqdefault.jpg"}, {"index": 25, "title": "20150815-17宜蘭黃順遠雙連埤_3", "id": "q5XnUjvafpc", "url": "https://www.youtube.com/watch?v=q5XnUjvafpc", "thumb": "https://img.youtube.com/vi/q5XnUjvafpc/mqdefault.jpg"}, {"index": 26, "title": "20150829-30淑芬花蓮同學會", "id": "d9S8TxR4u8c", "url": "https://www.youtube.com/watch?v=d9S8TxR4u8c", "thumb": "https://img.youtube.com/vi/d9S8TxR4u8c/mqdefault.jpg"}, {"index": 27, "title": "20150918-19淑芬公司生態之旅", "id": "RmbJXwdKDDk", "url": "https://www.youtube.com/watch?v=RmbJXwdKDDk", "thumb": "https://img.youtube.com/vi/RmbJXwdKDDk/mqdefault.jpg"}, {"index": 28, "title": "20151026屏東海生館之旅", "id": "jTRSa6kh_bg", "url": "https://www.youtube.com/watch?v=jTRSa6kh_bg", "thumb": "https://img.youtube.com/vi/jTRSa6kh_bg/mqdefault.jpg"}, {"index": 29, "title": "20151108茂林蝴蝶節", "id": "L9Qg_t165lc", "url": "https://www.youtube.com/watch?v=L9Qg_t165lc", "thumb": "https://img.youtube.com/vi/L9Qg_t165lc/mqdefault.jpg"}, {"index": 30, "title": "20151122_26橋頭田園花卉", "id": "4WN6-PiGJRY", "url": "https://www.youtube.com/watch?v=4WN6-PiGJRY", "thumb": "https://img.youtube.com/vi/4WN6-PiGJRY/mqdefault.jpg"}, {"index": 31, "title": "20151122台南師公生日", "id": "p06DjUzGpOw", "url": "https://www.youtube.com/watch?v=p06DjUzGpOw", "thumb": "https://img.youtube.com/vi/p06DjUzGpOw/mqdefault.jpg"}, {"index": 32, "title": "20151230魏銘宏來訪", "id": "8W9mV1ngtK0", "url": "https://www.youtube.com/watch?v=8W9mV1ngtK0", "thumb": "https://img.youtube.com/vi/8W9mV1ngtK0/mqdefault.jpg"}]}, {"id": "PLZZLQEqMqHSk", "title": "2016年陳家照片回憶錄", "desc": "民國105年家人生活與旅遊回憶", "year": "2016", "url": "https://www.youtube.com/playlist?list=PLZZLQEqMqHSk", "count": 44, "videos": [{"index": 1, "title": "20160123觀湖讀書會", "id": "KpU3tZ49-CU", "url": "https://www.youtube.com/watch?v=KpU3tZ49-CU", "thumb": "https://img.youtube.com/vi/KpU3tZ49-CU/mqdefault.jpg"}, {"index": 2, "title": "20160305帶媽坐車遊奮起湖", "id": "I1quGFeIYd8", "url": "https://www.youtube.com/watch?v=I1quGFeIYd8", "thumb": "https://img.youtube.com/vi/I1quGFeIYd8/mqdefault.jpg"}, {"index": 3, "title": "20160306台南國際蘭花展", "id": "FiMxcLalAJc", "url": "https://www.youtube.com/watch?v=FiMxcLalAJc", "thumb": "https://img.youtube.com/vi/FiMxcLalAJc/mqdefault.jpg"}, {"index": 4, "title": "20160320-21千禧社-峨眉湖之旅", "id": "uBzlrefjPF4", "url": "https://www.youtube.com/watch?v=uBzlrefjPF4", "thumb": "https://img.youtube.com/vi/uBzlrefjPF4/mqdefault.jpg"}, {"index": 5, "title": "20160418-21埔里合歡花蓮台東四日遊", "id": "sIvwYP0VSLs", "url": "https://www.youtube.com/watch?v=sIvwYP0VSLs", "thumb": "https://img.youtube.com/vi/sIvwYP0VSLs/mqdefault.jpg"}, {"index": 6, "title": "20160508母親節", "id": "o-9qPin3eaY", "url": "https://www.youtube.com/watch?v=o-9qPin3eaY", "thumb": "https://img.youtube.com/vi/o-9qPin3eaY/mqdefault.jpg"}, {"index": 7, "title": "20160528雪黛家做饅頭", "id": "YPVhfbP84Y0", "url": "https://www.youtube.com/watch?v=YPVhfbP84Y0", "thumb": "https://img.youtube.com/vi/YPVhfbP84Y0/mqdefault.jpg"}, {"index": 8, "title": "20160604古坑行", "id": "1jsMSYvt44s", "url": "https://www.youtube.com/watch?v=1jsMSYvt44s", "thumb": "https://img.youtube.com/vi/1jsMSYvt44s/mqdefault.jpg"}, {"index": 9, "title": "20160726自游旗津", "id": "a4ZIu1_92tM", "url": "https://www.youtube.com/watch?v=a4ZIu1_92tM", "thumb": "https://img.youtube.com/vi/a4ZIu1_92tM/mqdefault.jpg"}, {"index": 10, "title": "20160729-30找黃順遠-溪頭日月潭之旅", "id": "vRjzfGSqDZI", "url": "https://www.youtube.com/watch?v=vRjzfGSqDZI", "thumb": "https://img.youtube.com/vi/vRjzfGSqDZI/mqdefault.jpg"}, {"index": 11, "title": "20160807阿里山自由行", "id": "GJbgI1rClnI", "url": "https://www.youtube.com/watch?v=GJbgI1rClnI", "thumb": "https://img.youtube.com/vi/GJbgI1rClnI/mqdefault.jpg"}, {"index": 12, "title": "20160812淑芬公司屏東活動", "id": "HWk_H-Fz6QI", "url": "https://www.youtube.com/watch?v=HWk_H-Fz6QI", "thumb": "https://img.youtube.com/vi/HWk_H-Fz6QI/mqdefault.jpg"}, {"index": 13, "title": "20160819台北飛浦東-西寧", "id": "hS1G2mSEUPw", "url": "https://www.youtube.com/watch?v=hS1G2mSEUPw", "thumb": "https://img.youtube.com/vi/hS1G2mSEUPw/mqdefault.jpg"}, {"index": 14, "title": "20160820西寧-塔爾寺_1", "id": "Dn_n7muTNi8", "url": "https://www.youtube.com/watch?v=Dn_n7muTNi8", "thumb": "https://img.youtube.com/vi/Dn_n7muTNi8/mqdefault.jpg"}, {"index": 15, "title": "20160820西寧-塔爾寺_2", "id": "cZMZQs_RTkc", "url": "https://www.youtube.com/watch?v=cZMZQs_RTkc", "thumb": "https://img.youtube.com/vi/cZMZQs_RTkc/mqdefault.jpg"}, {"index": 16, "title": "20160821西寧-循化薩拉族文化_1", "id": "6_ev4JK_fHw", "url": "https://www.youtube.com/watch?v=6_ev4JK_fHw", "thumb": "https://img.youtube.com/vi/6_ev4JK_fHw/mqdefault.jpg"}, {"index": 17, "title": "20160821西寧-循化薩拉族文化_2", "id": "guUcaK7Bk1Q", "url": "https://www.youtube.com/watch?v=guUcaK7Bk1Q", "thumb": "https://img.youtube.com/vi/guUcaK7Bk1Q/mqdefault.jpg"}, {"index": 18, "title": "20160821西寧-循化薩拉族文化_3", "id": "pYD2hiFuqwc", "url": "https://www.youtube.com/watch?v=pYD2hiFuqwc", "thumb": "https://img.youtube.com/vi/pYD2hiFuqwc/mqdefault.jpg"}, {"index": 19, "title": "20160821西寧-循化薩拉族文化_4", "id": "jCe00sYqhPc", "url": "https://www.youtube.com/watch?v=jCe00sYqhPc", "thumb": "https://img.youtube.com/vi/jCe00sYqhPc/mqdefault.jpg"}, {"index": 20, "title": "20160822同仁縣-熱貢藝術_1", "id": "oQHJIjxvrkw", "url": "https://www.youtube.com/watch?v=oQHJIjxvrkw", "thumb": "https://img.youtube.com/vi/oQHJIjxvrkw/mqdefault.jpg"}, {"index": 21, "title": "20160822同仁縣-熱貢藝術_2", "id": "DbDPEs7JWLo", "url": "https://www.youtube.com/watch?v=DbDPEs7JWLo", "thumb": "https://img.youtube.com/vi/DbDPEs7JWLo/mqdefault.jpg"}, {"index": 22, "title": "20160822同仁縣-熱貢藝術_3", "id": "jMNqcLgMT00", "url": "https://www.youtube.com/watch?v=jMNqcLgMT00", "thumb": "https://img.youtube.com/vi/jMNqcLgMT00/mqdefault.jpg"}, {"index": 23, "title": "20160822同仁縣-熱貢藝術_4", "id": "qcYBE96hjiE", "url": "https://www.youtube.com/watch?v=qcYBE96hjiE", "thumb": "https://img.youtube.com/vi/qcYBE96hjiE/mqdefault.jpg"}, {"index": 24, "title": "20160823互助縣-土族文化_1", "id": "mKMoGhu5xtA", "url": "https://www.youtube.com/watch?v=mKMoGhu5xtA", "thumb": "https://img.youtube.com/vi/mKMoGhu5xtA/mqdefault.jpg"}, {"index": 25, "title": "20160823互助縣-土族文化_2", "id": "7JtdHKfHu90", "url": "https://www.youtube.com/watch?v=7JtdHKfHu90", "thumb": "https://img.youtube.com/vi/7JtdHKfHu90/mqdefault.jpg"}, {"index": 26, "title": "20160824西寧-青海湖_1", "id": "qI7TheyqCJA", "url": "https://www.youtube.com/watch?v=qI7TheyqCJA", "thumb": "https://img.youtube.com/vi/qI7TheyqCJA/mqdefault.jpg"}, {"index": 27, "title": "20160824西寧-青海湖_2", "id": "RXaBF1gRhQA", "url": "https://www.youtube.com/watch?v=RXaBF1gRhQA", "thumb": "https://img.youtube.com/vi/RXaBF1gRhQA/mqdefault.jpg"}, {"index": 28, "title": "20160824西寧-青海湖_3", "id": "83vSfBLk-Bw", "url": "https://www.youtube.com/watch?v=83vSfBLk-Bw", "thumb": "https://img.youtube.com/vi/83vSfBLk-Bw/mqdefault.jpg"}, {"index": 29, "title": "20160824西寧-青海湖_4", "id": "_lghMm8Fsz4", "url": "https://www.youtube.com/watch?v=_lghMm8Fsz4", "thumb": "https://img.youtube.com/vi/_lghMm8Fsz4/mqdefault.jpg"}, {"index": 30, "title": "20160824西寧-青海湖_5", "id": "90RPToTbHgo", "url": "https://www.youtube.com/watch?v=90RPToTbHgo", "thumb": "https://img.youtube.com/vi/90RPToTbHgo/mqdefault.jpg"}, {"index": 31, "title": "20160824西寧-青海湖_6", "id": "2i_sR5KgU-g", "url": "https://www.youtube.com/watch?v=2i_sR5KgU-g", "thumb": "https://img.youtube.com/vi/2i_sR5KgU-g/mqdefault.jpg"}, {"index": 32, "title": "20160825西寧市", "id": "6M0ZR30l_4E", "url": "https://www.youtube.com/watch?v=6M0ZR30l_4E", "thumb": "https://img.youtube.com/vi/6M0ZR30l_4E/mqdefault.jpg"}, {"index": 33, "title": "20160826西寧飛桃園", "id": "no0Oal7Hjbc", "url": "https://www.youtube.com/watch?v=no0Oal7Hjbc", "thumb": "https://img.youtube.com/vi/no0Oal7Hjbc/mqdefault.jpg"}, {"index": 34, "title": "20161008鳳山大東公園溼地", "id": "BjswyeNKFdE", "url": "https://www.youtube.com/watch?v=BjswyeNKFdE", "thumb": "https://img.youtube.com/vi/BjswyeNKFdE/mqdefault.jpg"}, {"index": 35, "title": "20161016-18金門旅遊", "id": "BN_YjsjpSGs", "url": "https://www.youtube.com/watch?v=BN_YjsjpSGs", "thumb": "https://img.youtube.com/vi/BN_YjsjpSGs/mqdefault.jpg"}, {"index": 36, "title": "20161118黃順遠家採洛神及瑞龍瀑布", "id": "1x36mpf0KrM", "url": "https://www.youtube.com/watch?v=1x36mpf0KrM", "thumb": "https://img.youtube.com/vi/1x36mpf0KrM/mqdefault.jpg"}, {"index": 37, "title": "20161120-21千禧旅遊-谷關及卓蘭", "id": "vmWG5PNLDUo", "url": "https://www.youtube.com/watch?v=vmWG5PNLDUo", "thumb": "https://img.youtube.com/vi/vmWG5PNLDUo/mqdefault.jpg"}, {"index": 38, "title": "20161126淑芬澄清湖同學會", "id": "E1kOcydYDHM", "url": "https://www.youtube.com/watch?v=E1kOcydYDHM", "thumb": "https://img.youtube.com/vi/E1kOcydYDHM/mqdefault.jpg"}, {"index": 39, "title": "20161210淑芬同事千湖島九份之旅", "id": "mIufaNAyF_k", "url": "https://www.youtube.com/watch?v=mIufaNAyF_k", "thumb": "https://img.youtube.com/vi/mIufaNAyF_k/mqdefault.jpg"}, {"index": 40, "title": "20161218技檢中心命題委員合照", "id": "NZa-tiTpLvs", "url": "https://www.youtube.com/watch?v=NZa-tiTpLvs", "thumb": "https://img.youtube.com/vi/NZa-tiTpLvs/mqdefault.jpg"}, {"index": 41, "title": "20161224悅閱社柴山活動", "id": "AELi_bYEntA", "url": "https://www.youtube.com/watch?v=AELi_bYEntA", "thumb": "https://img.youtube.com/vi/AELi_bYEntA/mqdefault.jpg"}, {"index": 42, "title": "20161225林園濕地公園", "id": "L3tdave2Dgc", "url": "https://www.youtube.com/watch?v=L3tdave2Dgc", "thumb": "https://img.youtube.com/vi/L3tdave2Dgc/mqdefault.jpg"}, {"index": 43, "title": "20161225買IPHONE手機試拍", "id": "xjw2luInX7Y", "url": "https://www.youtube.com/watch?v=xjw2luInX7Y", "thumb": "https://img.youtube.com/vi/xjw2luInX7Y/mqdefault.jpg"}, {"index": 44, "title": "20161231禎芳芽谷工作室開幕", "id": "SGMmAVjgiGs", "url": "https://www.youtube.com/watch?v=SGMmAVjgiGs", "thumb": "https://img.youtube.com/vi/SGMmAVjgiGs/mqdefault.jpg"}]}, {"id": "PLMsPBnQsIxFc", "title": "2017年陳家照片回憶錄", "desc": "民國106年家人生活與旅遊回憶", "year": "2017", "url": "https://www.youtube.com/playlist?list=PLMsPBnQsIxFc", "count": 30, "videos": [{"index": 1, "title": "2017家人照片", "id": "csL4ENWxOVw", "url": "https://www.youtube.com/watch?v=csL4ENWxOVw", "thumb": "https://img.youtube.com/vi/csL4ENWxOVw/mqdefault.jpg"}, {"index": 2, "title": "20170102和張宇卿遊大鵬灣", "id": "Kccj-rjk9Ik", "url": "https://www.youtube.com/watch?v=Kccj-rjk9Ik", "thumb": "https://img.youtube.com/vi/Kccj-rjk9Ik/mqdefault.jpg"}, {"index": 3, "title": "20170129-30過年全家至水里及日月潭旅遊", "id": "KH93MWTih3k", "url": "https://www.youtube.com/watch?v=KH93MWTih3k", "thumb": "https://img.youtube.com/vi/KH93MWTih3k/mqdefault.jpg"}, {"index": 4, "title": "20170205屏東農業博覽會", "id": "jcGzx2nUmow", "url": "https://www.youtube.com/watch?v=jcGzx2nUmow", "thumb": "https://img.youtube.com/vi/jcGzx2nUmow/mqdefault.jpg"}, {"index": 5, "title": "20170225淑芬台南同學兒子結婚-桂田酒店", "id": "8RfJK3rm_sU", "url": "https://www.youtube.com/watch?v=8RfJK3rm_sU", "thumb": "https://img.youtube.com/vi/8RfJK3rm_sU/mqdefault.jpg"}, {"index": 6, "title": "20170304悅閱社英國領事館考查", "id": "HnbH5HBh6ao", "url": "https://www.youtube.com/watch?v=HnbH5HBh6ao", "thumb": "https://img.youtube.com/vi/HnbH5HBh6ao/mqdefault.jpg"}, {"index": 7, "title": "20170312-13千禧旅遊-八卦力民俗村_神仙谷", "id": "YIXvTyzc6ew", "url": "https://www.youtube.com/watch?v=YIXvTyzc6ew", "thumb": "https://img.youtube.com/vi/YIXvTyzc6ew/mqdefault.jpg"}, {"index": 8, "title": "20170331阿里山花季自由行", "id": "7JL_kYw_jOo", "url": "https://www.youtube.com/watch?v=7JL_kYw_jOo", "thumb": "https://img.youtube.com/vi/7JL_kYw_jOo/mqdefault.jpg"}, {"index": 9, "title": "20170421屏東大花農場", "id": "6DlG3-b-4_g", "url": "https://www.youtube.com/watch?v=6DlG3-b-4_g", "thumb": "https://img.youtube.com/vi/6DlG3-b-4_g/mqdefault.jpg"}, {"index": 10, "title": "20170506黃順遠家採桑椹", "id": "mojFhyPJwcQ", "url": "https://www.youtube.com/watch?v=mojFhyPJwcQ", "thumb": "https://img.youtube.com/vi/mojFhyPJwcQ/mqdefault.jpg"}, {"index": 11, "title": "20170520加工區南故宮之旅", "id": "2mF4a5gZg9c", "url": "https://www.youtube.com/watch?v=2mF4a5gZg9c", "thumb": "https://img.youtube.com/vi/2mF4a5gZg9c/mqdefault.jpg"}, {"index": 12, "title": "20170604-5前鎮一分會台東之旅", "id": "qgQ5urDfkXI", "url": "https://www.youtube.com/watch?v=qgQ5urDfkXI", "thumb": "https://img.youtube.com/vi/qgQ5urDfkXI/mqdefault.jpg"}, {"index": 13, "title": "20170629-30台中麗寶樂園", "id": "2_fVrkoOiog", "url": "https://www.youtube.com/watch?v=2_fVrkoOiog", "thumb": "https://img.youtube.com/vi/2_fVrkoOiog/mqdefault.jpg"}, {"index": 14, "title": "20170723遊原住民文化園區", "id": "a1HxjMNg80k", "url": "https://www.youtube.com/watch?v=a1HxjMNg80k", "thumb": "https://img.youtube.com/vi/a1HxjMNg80k/mqdefault.jpg"}, {"index": 15, "title": "20170803阿芳辦愛之船婚禮", "id": "XNlgryNaYNY", "url": "https://www.youtube.com/watch?v=XNlgryNaYNY", "thumb": "https://img.youtube.com/vi/XNlgryNaYNY/mqdefault.jpg"}, {"index": 16, "title": "20170806民主里清境盧山活動", "id": "4Xe3T3cNXbs", "url": "https://www.youtube.com/watch?v=4Xe3T3cNXbs", "thumb": "https://img.youtube.com/vi/4Xe3T3cNXbs/mqdefault.jpg"}, {"index": 17, "title": "20170903-4杉林溪之旅", "id": "ZnbPIWtNW-8", "url": "https://www.youtube.com/watch?v=ZnbPIWtNW-8", "thumb": "https://img.youtube.com/vi/ZnbPIWtNW-8/mqdefault.jpg"}, {"index": 18, "title": "20170928-29大陸山西大同之旅_0928_29", "id": "BRids4o0Qrs", "url": "https://www.youtube.com/watch?v=BRids4o0Qrs", "thumb": "https://img.youtube.com/vi/BRids4o0Qrs/mqdefault.jpg"}, {"index": 19, "title": "20170930大陸山西大同之旅_0930", "id": "DlXAVae4eXc", "url": "https://www.youtube.com/watch?v=DlXAVae4eXc", "thumb": "https://img.youtube.com/vi/DlXAVae4eXc/mqdefault.jpg"}, {"index": 20, "title": "20171001大陸山西大同之旅_1001", "id": "SvQ2MZTln6I", "url": "https://www.youtube.com/watch?v=SvQ2MZTln6I", "thumb": "https://img.youtube.com/vi/SvQ2MZTln6I/mqdefault.jpg"}, {"index": 21, "title": "20171002大陸山西大同之旅_1002", "id": "_FXdvqn9dZU", "url": "https://www.youtube.com/watch?v=_FXdvqn9dZU", "thumb": "https://img.youtube.com/vi/_FXdvqn9dZU/mqdefault.jpg"}, {"index": 22, "title": "20171003大陸山西大同之旅_1003", "id": "cOon5yY0w4Q", "url": "https://www.youtube.com/watch?v=cOon5yY0w4Q", "thumb": "https://img.youtube.com/vi/cOon5yY0w4Q/mqdefault.jpg"}, {"index": 23, "title": "20171004大陸山西大同之旅_1004", "id": "1Lf3vZxofqQ", "url": "https://www.youtube.com/watch?v=1Lf3vZxofqQ", "thumb": "https://img.youtube.com/vi/1Lf3vZxofqQ/mqdefault.jpg"}, {"index": 24, "title": "20171017千禧聯誼會聚餐", "id": "eIDba_-XMUY", "url": "https://www.youtube.com/watch?v=eIDba_-XMUY", "thumb": "https://img.youtube.com/vi/eIDba_-XMUY/mqdefault.jpg"}, {"index": 25, "title": "20171112悅閱社南仁湖健行", "id": "QBKa-SMyStQ", "url": "https://www.youtube.com/watch?v=QBKa-SMyStQ", "thumb": "https://img.youtube.com/vi/QBKa-SMyStQ/mqdefault.jpg"}, {"index": 26, "title": "20171120千禧旅遊_東埔_新中棋", "id": "ckQylqLFsXU", "url": "https://www.youtube.com/watch?v=ckQylqLFsXU", "thumb": "https://img.youtube.com/vi/ckQylqLFsXU/mqdefault.jpg"}, {"index": 27, "title": "20171125黃順遠家採洛神花", "id": "l9vYxXZZtsU", "url": "https://www.youtube.com/watch?v=l9vYxXZZtsU", "thumb": "https://img.youtube.com/vi/l9vYxXZZtsU/mqdefault.jpg"}, {"index": 28, "title": "20171203高雄客運遊美濃", "id": "XQU1xJXTgzQ", "url": "https://www.youtube.com/watch?v=XQU1xJXTgzQ", "thumb": "https://img.youtube.com/vi/XQU1xJXTgzQ/mqdefault.jpg"}, {"index": 29, "title": "20171208我的58歲生日", "id": "WpHW4OEFqEk", "url": "https://www.youtube.com/watch?v=WpHW4OEFqEk", "thumb": "https://img.youtube.com/vi/WpHW4OEFqEk/mqdefault.jpg"}, {"index": 30, "title": "20171231山川琉璃吊橋_萬金教堂", "id": "uUB8QZFPi-w", "url": "https://www.youtube.com/watch?v=uUB8QZFPi-w", "thumb": "https://img.youtube.com/vi/uUB8QZFPi-w/mqdefault.jpg"}]}, {"id": "PLOSgiK6AhxvE", "title": "2018年陳家照片回憶錄", "desc": "民國107年家人生活與旅遊回憶", "year": "2018", "url": "https://www.youtube.com/playlist?list=PLOSgiK6AhxvE", "count": 36, "videos": [{"index": 1, "title": "20180107-08草嶺寒溪呢旅遊", "id": "jctNBMi1ngQ", "url": "https://www.youtube.com/watch?v=jctNBMi1ngQ", "thumb": "https://img.youtube.com/vi/jctNBMi1ngQ/mqdefault.jpg"}, {"index": 2, "title": "20180115-21東山之旅", "id": "nX8uY0cYjKc", "url": "https://www.youtube.com/watch?v=nX8uY0cYjKc", "thumb": "https://img.youtube.com/vi/nX8uY0cYjKc/mqdefault.jpg"}, {"index": 3, "title": "20180210-11清境家庭旅遊", "id": "wCbosuX1F1Q", "url": "https://www.youtube.com/watch?v=wCbosuX1F1Q", "thumb": "https://img.youtube.com/vi/wCbosuX1F1Q/mqdefault.jpg"}, {"index": 4, "title": "20180311泰武村一日遊", "id": "s1p3Ygp2CFA", "url": "https://www.youtube.com/watch?v=s1p3Ygp2CFA", "thumb": "https://img.youtube.com/vi/s1p3Ygp2CFA/mqdefault.jpg"}, {"index": 5, "title": "20180317小學同學會在台南", "id": "xoPwmlJ5V6E", "url": "https://www.youtube.com/watch?v=xoPwmlJ5V6E", "thumb": "https://img.youtube.com/vi/xoPwmlJ5V6E/mqdefault.jpg"}, {"index": 6, "title": "20180318岡山之眼一日遊", "id": "HS4EAa_JEdA", "url": "https://www.youtube.com/watch?v=HS4EAa_JEdA", "thumb": "https://img.youtube.com/vi/HS4EAa_JEdA/mqdefault.jpg"}, {"index": 7, "title": "20180321阿里山一日遊", "id": "8s91p5Kt3dM", "url": "https://www.youtube.com/watch?v=8s91p5Kt3dM", "thumb": "https://img.youtube.com/vi/8s91p5Kt3dM/mqdefault.jpg"}, {"index": 8, "title": "20180328帶媽去文化中心", "id": "MUhanmk7ClQ", "url": "https://www.youtube.com/watch?v=MUhanmk7ClQ", "thumb": "https://img.youtube.com/vi/MUhanmk7ClQ/mqdefault.jpg"}, {"index": 9, "title": "20180407張宇卿帶日本山陽山陰自由行-D1小港關西姬路", "id": "ym39KJyeRVA", "url": "https://www.youtube.com/watch?v=ym39KJyeRVA", "thumb": "https://img.youtube.com/vi/ym39KJyeRVA/mqdefault.jpg"}, {"index": 10, "title": "20180408張宇卿帶日本山陽山陰自由行-D2姬路鳥取松江", "id": "IMR_OS8nBJU", "url": "https://www.youtube.com/watch?v=IMR_OS8nBJU", "thumb": "https://img.youtube.com/vi/IMR_OS8nBJU/mqdefault.jpg"}, {"index": 11, "title": "20180409張宇卿帶日本山陽山陰自由行-D3松江城花鳥園出雲大社", "id": "4q5eKA5cE2o", "url": "https://www.youtube.com/watch?v=4q5eKA5cE2o", "thumb": "https://img.youtube.com/vi/4q5eKA5cE2o/mqdefault.jpg"}, {"index": 12, "title": "20180410張宇卿帶日本山陽山陰自由行-D4由志園足立美術館岡山", "id": "vkfBv_GMHD8", "url": "https://www.youtube.com/watch?v=vkfBv_GMHD8", "thumb": "https://img.youtube.com/vi/vkfBv_GMHD8/mqdefault.jpg"}, {"index": 13, "title": "20180411張宇卿帶日本山陽山陰自由行-D5岡山後樂園岡山城", "id": "BoPuCS6zFOo", "url": "https://www.youtube.com/watch?v=BoPuCS6zFOo", "thumb": "https://img.youtube.com/vi/BoPuCS6zFOo/mqdefault.jpg"}, {"index": 14, "title": "20180412張宇卿帶日本山陽山陰自由行-D6廣島原爆和平公園嚴島神社", "id": "hC9e7JQz0iA", "url": "https://www.youtube.com/watch?v=hC9e7JQz0iA", "thumb": "https://img.youtube.com/vi/hC9e7JQz0iA/mqdefault.jpg"}, {"index": 15, "title": "20180413張宇卿帶日本山陽山陰自由行-D7難波黑門市場道頓崛", "id": "xxfp1J_5AlY", "url": "https://www.youtube.com/watch?v=xxfp1J_5AlY", "thumb": "https://img.youtube.com/vi/xxfp1J_5AlY/mqdefault.jpg"}, {"index": 16, "title": "20180414張宇卿帶日本山陽山陰自由行-D9宇卿部份", "id": "kDkBcsdmzOQ", "url": "https://www.youtube.com/watch?v=kDkBcsdmzOQ", "thumb": "https://img.youtube.com/vi/kDkBcsdmzOQ/mqdefault.jpg"}, {"index": 17, "title": "20180418帶媽去澄清湖", "id": "Foev9yE4EzQ", "url": "https://www.youtube.com/watch?v=Foev9yE4EzQ", "thumb": "https://img.youtube.com/vi/Foev9yE4EzQ/mqdefault.jpg"}, {"index": 18, "title": "20180502帶媽去蓮池潭", "id": "cIRWSSkhbqs", "url": "https://www.youtube.com/watch?v=cIRWSSkhbqs", "thumb": "https://img.youtube.com/vi/cIRWSSkhbqs/mqdefault.jpg"}, {"index": 19, "title": "20180504-5南庄之旅", "id": "RD3f_7a5reo", "url": "https://www.youtube.com/watch?v=RD3f_7a5reo", "thumb": "https://img.youtube.com/vi/RD3f_7a5reo/mqdefault.jpg"}, {"index": 20, "title": "20180506閱悅社去吾拉魯滋部落", "id": "hTNh5gpMPGc", "url": "https://www.youtube.com/watch?v=hTNh5gpMPGc", "thumb": "https://img.youtube.com/vi/hTNh5gpMPGc/mqdefault.jpg"}, {"index": 21, "title": "20180709自己去爬柴山", "id": "c26FVS2cQJ4", "url": "https://www.youtube.com/watch?v=c26FVS2cQJ4", "thumb": "https://img.youtube.com/vi/c26FVS2cQJ4/mqdefault.jpg"}, {"index": 22, "title": "20180712淑芬舞蹈社團慶生", "id": "zlHfS9THsbU", "url": "https://www.youtube.com/watch?v=zlHfS9THsbU", "thumb": "https://img.youtube.com/vi/zlHfS9THsbU/mqdefault.jpg"}, {"index": 23, "title": "20180714蚵仔寮做魚丸", "id": "fGO1mx9e0Jk", "url": "https://www.youtube.com/watch?v=fGO1mx9e0Jk", "thumb": "https://img.youtube.com/vi/fGO1mx9e0Jk/mqdefault.jpg"}, {"index": 24, "title": "20180729-30杉林溪二日遊", "id": "jej9j5QNsjs", "url": "https://www.youtube.com/watch?v=jej9j5QNsjs", "thumb": "https://img.youtube.com/vi/jej9j5QNsjs/mqdefault.jpg"}, {"index": 25, "title": "20180805帶媽去夢時代", "id": "PS6FqZiF2_0", "url": "https://www.youtube.com/watch?v=PS6FqZiF2_0", "thumb": "https://img.youtube.com/vi/PS6FqZiF2_0/mqdefault.jpg"}, {"index": 26, "title": "20180904帶媽杉林溪2日遊", "id": "UqWJN42rb-0", "url": "https://www.youtube.com/watch?v=UqWJN42rb-0", "thumb": "https://img.youtube.com/vi/UqWJN42rb-0/mqdefault.jpg"}, {"index": 27, "title": "20180929高雄健走愛河", "id": "M3UCIZVE_nM", "url": "https://www.youtube.com/watch?v=M3UCIZVE_nM", "thumb": "https://img.youtube.com/vi/M3UCIZVE_nM/mqdefault.jpg"}, {"index": 28, "title": "20181014科工館火車站起用", "id": "qQXizEWNfLM", "url": "https://www.youtube.com/watch?v=qQXizEWNfLM", "thumb": "https://img.youtube.com/vi/qQXizEWNfLM/mqdefault.jpg"}, {"index": 29, "title": "20181020帶媽橋頭半日遊", "id": "qbgYv_yQRlQ", "url": "https://www.youtube.com/watch?v=qbgYv_yQRlQ", "thumb": "https://img.youtube.com/vi/qbgYv_yQRlQ/mqdefault.jpg"}, {"index": 30, "title": "20181113-14帶媽去台東部農文化村二日遊", "id": "4Xp-qV823a4", "url": "https://www.youtube.com/watch?v=4Xp-qV823a4", "thumb": "https://img.youtube.com/vi/4Xp-qV823a4/mqdefault.jpg"}, {"index": 31, "title": "20181118台南師公拜拜", "id": "pLWpdNzD26c", "url": "https://www.youtube.com/watch?v=pLWpdNzD26c", "thumb": "https://img.youtube.com/vi/pLWpdNzD26c/mqdefault.jpg"}, {"index": 32, "title": "20181124黃順遠家採洛神回來", "id": "7wo9tKENEdI", "url": "https://www.youtube.com/watch?v=7wo9tKENEdI", "thumb": "https://img.youtube.com/vi/7wo9tKENEdI/mqdefault.jpg"}, {"index": 33, "title": "20181202悅閱社小林村探訪", "id": "cy7xizS9gjQ", "url": "https://www.youtube.com/watch?v=cy7xizS9gjQ", "thumb": "https://img.youtube.com/vi/cy7xizS9gjQ/mqdefault.jpg"}, {"index": 34, "title": "20181208淑芬苗栗同學會", "id": "VioReN09ZLA", "url": "https://www.youtube.com/watch?v=VioReN09ZLA", "thumb": "https://img.youtube.com/vi/VioReN09ZLA/mqdefault.jpg"}, {"index": 35, "title": "20181216坐夢時代摩天輪", "id": "eY0bKxV4Ki0", "url": "https://www.youtube.com/watch?v=eY0bKxV4Ki0", "thumb": "https://img.youtube.com/vi/eY0bKxV4Ki0/mqdefault.jpg"}, {"index": 36, "title": "20181217-18帶媽看台中國際花展", "id": "3CXk6e4fJM4", "url": "https://www.youtube.com/watch?v=3CXk6e4fJM4", "thumb": "https://img.youtube.com/vi/3CXk6e4fJM4/mqdefault.jpg"}]}, {"id": "PLCWsTA1S_QnA", "title": "2019年陳家照片回憶錄", "desc": "民國108年家人生活與旅遊回憶", "year": "2019", "url": "https://www.youtube.com/playlist?list=PLCWsTA1S_QnA", "count": 29, "videos": [{"index": 1, "title": "2019居家生活", "id": "NrGVXaRs-TI", "url": "https://www.youtube.com/watch?v=NrGVXaRs-TI", "thumb": "https://img.youtube.com/vi/NrGVXaRs-TI/mqdefault.jpg"}, {"index": 2, "title": "201905-07帶媽里民花東三日遊", "id": "w9m_pNkw_yQ", "url": "https://www.youtube.com/watch?v=w9m_pNkw_yQ", "thumb": "https://img.youtube.com/vi/w9m_pNkw_yQ/mqdefault.jpg"}, {"index": 3, "title": "20190205-12大陸大哥來台", "id": "vOZJVggpkGM", "url": "https://www.youtube.com/watch?v=vOZJVggpkGM", "thumb": "https://img.youtube.com/vi/vOZJVggpkGM/mqdefault.jpg"}, {"index": 4, "title": "20190219帶媽屏東花燈展", "id": "LpIubeyKJg4", "url": "https://www.youtube.com/watch?v=LpIubeyKJg4", "thumb": "https://img.youtube.com/vi/LpIubeyKJg4/mqdefault.jpg"}, {"index": 5, "title": "20190226屏東花燈展", "id": "PNBkC9Ft7aM", "url": "https://www.youtube.com/watch?v=PNBkC9Ft7aM", "thumb": "https://img.youtube.com/vi/PNBkC9Ft7aM/mqdefault.jpg"}, {"index": 6, "title": "20190301台南菁寮林初埤花季布袋一日遊", "id": "Tr8JvGmSwtg", "url": "https://www.youtube.com/watch?v=Tr8JvGmSwtg", "thumb": "https://img.youtube.com/vi/Tr8JvGmSwtg/mqdefault.jpg"}, {"index": 7, "title": "20190316爬柴山", "id": "WHF1pJHaNcw", "url": "https://www.youtube.com/watch?v=WHF1pJHaNcw", "thumb": "https://img.youtube.com/vi/WHF1pJHaNcw/mqdefault.jpg"}, {"index": 8, "title": "20190401阿里山花季", "id": "bKAF4A8FATU", "url": "https://www.youtube.com/watch?v=bKAF4A8FATU", "thumb": "https://img.youtube.com/vi/bKAF4A8FATU/mqdefault.jpg"}, {"index": 9, "title": "20190420帶媽屏東半日遊", "id": "C54dC1mJx0M", "url": "https://www.youtube.com/watch?v=C54dC1mJx0M", "thumb": "https://img.youtube.com/vi/C54dC1mJx0M/mqdefault.jpg"}, {"index": 10, "title": "20190510-17北京長城8日遊", "id": "3kBjIs88ggc", "url": "https://www.youtube.com/watch?v=3kBjIs88ggc", "thumb": "https://img.youtube.com/vi/3kBjIs88ggc/mqdefault.jpg"}, {"index": 11, "title": "20190601中國醫玫妃畢業典禮及鹿港一日遊", "id": "xcYbVkI-Szc", "url": "https://www.youtube.com/watch?v=xcYbVkI-Szc", "thumb": "https://img.youtube.com/vi/xcYbVkI-Szc/mqdefault.jpg"}, {"index": 12, "title": "20190603帶媽鹿港一日遊", "id": "rkjUVZ7YXoI", "url": "https://www.youtube.com/watch?v=rkjUVZ7YXoI", "thumb": "https://img.youtube.com/vi/rkjUVZ7YXoI/mqdefault.jpg"}, {"index": 13, "title": "20190610花蓮場地評鑑及順便二日遊", "id": "yXofVXLFgz8", "url": "https://www.youtube.com/watch?v=yXofVXLFgz8", "thumb": "https://img.youtube.com/vi/yXofVXLFgz8/mqdefault.jpg"}, {"index": 14, "title": "20190824-25嘉義太興岩二日旅遊", "id": "iIgMvmW1G0M", "url": "https://www.youtube.com/watch?v=iIgMvmW1G0M", "thumb": "https://img.youtube.com/vi/iIgMvmW1G0M/mqdefault.jpg"}, {"index": 15, "title": "20190918爬柴山", "id": "9xnpg_-Qohc", "url": "https://www.youtube.com/watch?v=9xnpg_-Qohc", "thumb": "https://img.youtube.com/vi/9xnpg_-Qohc/mqdefault.jpg"}, {"index": 16, "title": "20190923帶媽台東二日遊", "id": "PXopObqB64A", "url": "https://www.youtube.com/watch?v=PXopObqB64A", "thumb": "https://img.youtube.com/vi/PXopObqB64A/mqdefault.jpg"}, {"index": 17, "title": "20190926阿里山一日自由行", "id": "XN4bK1lGTl4", "url": "https://www.youtube.com/watch?v=XN4bK1lGTl4", "thumb": "https://img.youtube.com/vi/XN4bK1lGTl4/mqdefault.jpg"}, {"index": 18, "title": "20191006里民活動-墾丁一日遊", "id": "9D_asPiP1FU", "url": "https://www.youtube.com/watch?v=9D_asPiP1FU", "thumb": "https://img.youtube.com/vi/9D_asPiP1FU/mqdefault.jpg"}, {"index": 19, "title": "20191012帶媽屏東看設計展", "id": "dAMDADzgBXc", "url": "https://www.youtube.com/watch?v=dAMDADzgBXc", "thumb": "https://img.youtube.com/vi/dAMDADzgBXc/mqdefault.jpg"}, {"index": 20, "title": "20191021南庄二日遊", "id": "LkUTNeim_aI", "url": "https://www.youtube.com/watch?v=LkUTNeim_aI", "thumb": "https://img.youtube.com/vi/LkUTNeim_aI/mqdefault.jpg"}, {"index": 21, "title": "20191105嘉義市自由行", "id": "NIHi7H93G1g", "url": "https://www.youtube.com/watch?v=NIHi7H93G1g", "thumb": "https://img.youtube.com/vi/NIHi7H93G1g/mqdefault.jpg"}, {"index": 22, "title": "20191111帶媽去嘉義市二日遊", "id": "sXbafdUBwdA", "url": "https://www.youtube.com/watch?v=sXbafdUBwdA", "thumb": "https://img.youtube.com/vi/sXbafdUBwdA/mqdefault.jpg"}, {"index": 23, "title": "20191117左營見城館", "id": "p2RN0UqW4cc", "url": "https://www.youtube.com/watch?v=p2RN0UqW4cc", "thumb": "https://img.youtube.com/vi/p2RN0UqW4cc/mqdefault.jpg"}, {"index": 24, "title": "20191122台中新社國際花毯節二日遊", "id": "rlDFel_Ftbc", "url": "https://www.youtube.com/watch?v=rlDFel_Ftbc", "thumb": "https://img.youtube.com/vi/rlDFel_Ftbc/mqdefault.jpg"}, {"index": 25, "title": "20191130潮州自遊行", "id": "gQHdYGZYg4o", "url": "https://www.youtube.com/watch?v=gQHdYGZYg4o", "thumb": "https://img.youtube.com/vi/gQHdYGZYg4o/mqdefault.jpg"}, {"index": 26, "title": "20191201帶媽去台南水道博物館", "id": "89WkP-TOUuI", "url": "https://www.youtube.com/watch?v=89WkP-TOUuI", "thumb": "https://img.youtube.com/vi/89WkP-TOUuI/mqdefault.jpg"}, {"index": 27, "title": "20191216帶媽去台中二日遊", "id": "YZ9Qt4tOn_4", "url": "https://www.youtube.com/watch?v=YZ9Qt4tOn_4", "thumb": "https://img.youtube.com/vi/YZ9Qt4tOn_4/mqdefault.jpg"}, {"index": 28, "title": "20191225-30泰國五日遊", "id": "ZIMRVRagqpw", "url": "https://www.youtube.com/watch?v=ZIMRVRagqpw", "thumb": "https://img.youtube.com/vi/ZIMRVRagqpw/mqdefault.jpg"}, {"index": 29, "title": "2019120860歲聚餐", "id": "FVYkXUIWKZk", "url": "https://www.youtube.com/watch?v=FVYkXUIWKZk", "thumb": "https://img.youtube.com/vi/FVYkXUIWKZk/mqdefault.jpg"}]}, {"id": "PLKww0lNzzo94", "title": "2020年陳家照片回憶錄", "desc": "民國109年家人生活與旅遊回憶", "year": "2020", "url": "https://www.youtube.com/playlist?list=PLKww0lNzzo94", "count": 19, "videos": [{"index": 1, "title": "20200218屏東市一日遊", "id": "apHwySaYxO8", "url": "https://www.youtube.com/watch?v=apHwySaYxO8", "thumb": "https://img.youtube.com/vi/apHwySaYxO8/mqdefault.jpg"}, {"index": 2, "title": "20200228南州枋寮一日遊", "id": "hm34Hgwqe0c", "url": "https://www.youtube.com/watch?v=hm34Hgwqe0c", "thumb": "https://img.youtube.com/vi/hm34Hgwqe0c/mqdefault.jpg"}, {"index": 3, "title": "20200614台南後壁小南海一日遊", "id": "8k3m_h9ZWXo", "url": "https://www.youtube.com/watch?v=8k3m_h9ZWXo", "thumb": "https://img.youtube.com/vi/8k3m_h9ZWXo/mqdefault.jpg"}, {"index": 4, "title": "20200703帶媽日月潭二日遊", "id": "IEPj4XB7Clg", "url": "https://www.youtube.com/watch?v=IEPj4XB7Clg", "thumb": "https://img.youtube.com/vi/IEPj4XB7Clg/mqdefault.jpg"}, {"index": 5, "title": "20200705台南市自由行", "id": "JnqlfHuJE-k", "url": "https://www.youtube.com/watch?v=JnqlfHuJE-k", "thumb": "https://img.youtube.com/vi/JnqlfHuJE-k/mqdefault.jpg"}, {"index": 6, "title": "20200717彰化市自由行", "id": "NUHcEJlQous", "url": "https://www.youtube.com/watch?v=NUHcEJlQous", "thumb": "https://img.youtube.com/vi/NUHcEJlQous/mqdefault.jpg"}, {"index": 7, "title": "20200808駁二特區夜遊", "id": "Y5dQEk8ROGs", "url": "https://www.youtube.com/watch?v=Y5dQEk8ROGs", "thumb": "https://img.youtube.com/vi/Y5dQEk8ROGs/mqdefault.jpg"}, {"index": 8, "title": "20200823帶媽遊集集&彰化八卦山", "id": "-zLg0Csyd18", "url": "https://www.youtube.com/watch?v=-zLg0Csyd18", "thumb": "https://img.youtube.com/vi/-zLg0Csyd18/mqdefault.jpg"}, {"index": 9, "title": "20200830和淑芬遊埔里&清境", "id": "VA05CyXV8aM", "url": "https://www.youtube.com/watch?v=VA05CyXV8aM", "thumb": "https://img.youtube.com/vi/VA05CyXV8aM/mqdefault.jpg"}, {"index": 10, "title": "20200920帶媽遊台中麗寶outlet", "id": "EkXS-mlv42Q", "url": "https://www.youtube.com/watch?v=EkXS-mlv42Q", "thumb": "https://img.youtube.com/vi/EkXS-mlv42Q/mqdefault.jpg"}, {"index": 11, "title": "20201006佛光會安平一日遊", "id": "lLqVvKebEkM", "url": "https://www.youtube.com/watch?v=lLqVvKebEkM", "thumb": "https://img.youtube.com/vi/lLqVvKebEkM/mqdefault.jpg"}, {"index": 12, "title": "20201015帶媽遊嘉義故宮南院", "id": "RPz97GVgsj0", "url": "https://www.youtube.com/watch?v=RPz97GVgsj0", "thumb": "https://img.youtube.com/vi/RPz97GVgsj0/mqdefault.jpg"}, {"index": 13, "title": "20201018-19民主里武界2日遊", "id": "rrTy7cGU_mI", "url": "https://www.youtube.com/watch?v=rrTy7cGU_mI", "thumb": "https://img.youtube.com/vi/rrTy7cGU_mI/mqdefault.jpg"}, {"index": 14, "title": "20201025民主里得恩亞納健走", "id": "oTs1APlEJN8", "url": "https://www.youtube.com/watch?v=oTs1APlEJN8", "thumb": "https://img.youtube.com/vi/oTs1APlEJN8/mqdefault.jpg"}, {"index": 15, "title": "20201115帶媽遊台東伯朗大道", "id": "z6ZuaIkObAk", "url": "https://www.youtube.com/watch?v=z6ZuaIkObAk", "thumb": "https://img.youtube.com/vi/z6ZuaIkObAk/mqdefault.jpg"}, {"index": 16, "title": "20201122民主里和淑芬遊日月潭", "id": "A9zh2ScLc04", "url": "https://www.youtube.com/watch?v=A9zh2ScLc04", "thumb": "https://img.youtube.com/vi/A9zh2ScLc04/mqdefault.jpg"}, {"index": 17, "title": "20201129帶媽去找永珍家", "id": "J1e5i-WD5sg", "url": "https://www.youtube.com/watch?v=J1e5i-WD5sg", "thumb": "https://img.youtube.com/vi/J1e5i-WD5sg/mqdefault.jpg"}, {"index": 18, "title": "20201207和李建宏爬笠頂山", "id": "0pwwRG4aXsY", "url": "https://www.youtube.com/watch?v=0pwwRG4aXsY", "thumb": "https://img.youtube.com/vi/0pwwRG4aXsY/mqdefault.jpg"}, {"index": 19, "title": "20201213-15帶媽去羅東找永玲", "id": "F9gG61-GoFw", "url": "https://www.youtube.com/watch?v=F9gG61-GoFw", "thumb": "https://img.youtube.com/vi/F9gG61-GoFw/mqdefault.jpg"}]}, {"id": "PLZLix0EW4It4", "title": "2021年陳家照片回憶錄", "desc": "民國110年家人生活與旅遊回憶", "year": "2021", "url": "https://www.youtube.com/playlist?list=PLZLix0EW4It4", "count": 2, "videos": [{"index": 1, "title": "20210130帶媽坐輕軌", "id": "k-8yuOLl5ho", "url": "https://www.youtube.com/watch?v=k-8yuOLl5ho", "thumb": "https://img.youtube.com/vi/k-8yuOLl5ho/mqdefault.jpg"}, {"index": 2, "title": "20210412悅閱社大澎灣走讀", "id": "YPwurmD64EQ", "url": "https://www.youtube.com/watch?v=YPwurmD64EQ", "thumb": "https://img.youtube.com/vi/YPwurmD64EQ/mqdefault.jpg"}]}, {"id": "PLR1moIP9C_Pc", "title": "2022年陳家照片回憶錄", "desc": "民國111年家人生活與旅遊回憶", "year": "2022", "url": "https://www.youtube.com/playlist?list=PLR1moIP9C_Pc", "count": 18, "videos": [{"index": 1, "title": "20220205新年春節佛光山活動", "id": "yArwDWfYbtM", "url": "https://www.youtube.com/watch?v=yArwDWfYbtM", "thumb": "https://img.youtube.com/vi/yArwDWfYbtM/mqdefault.jpg"}, {"index": 2, "title": "20220314阿里山一日遊", "id": "_YbEh2VVucA", "url": "https://www.youtube.com/watch?v=_YbEh2VVucA", "thumb": "https://img.youtube.com/vi/_YbEh2VVucA/mqdefault.jpg"}, {"index": 3, "title": "20220320淑芬與潘老師同遊", "id": "FeDECQuCoWc", "url": "https://www.youtube.com/watch?v=FeDECQuCoWc", "thumb": "https://img.youtube.com/vi/FeDECQuCoWc/mqdefault.jpg"}, {"index": 4, "title": "20220328淑芬朋友聚餐", "id": "8P8EjW-Nzu4", "url": "https://www.youtube.com/watch?v=8P8EjW-Nzu4", "thumb": "https://img.youtube.com/vi/8P8EjW-Nzu4/mqdefault.jpg"}, {"index": 5, "title": "20220410帶媽媽臺中兩日遊", "id": "-eAhehKdirA", "url": "https://www.youtube.com/watch?v=-eAhehKdirA", "thumb": "https://img.youtube.com/vi/-eAhehKdirA/mqdefault.jpg"}, {"index": 6, "title": "20220613淑芬夜間舞蹈活動", "id": "HKWIDJS7tSs", "url": "https://www.youtube.com/watch?v=HKWIDJS7tSs", "thumb": "https://img.youtube.com/vi/HKWIDJS7tSs/mqdefault.jpg"}, {"index": 7, "title": "20220629淑芬據點帶動唱", "id": "GPvFHpecW0Q", "url": "https://www.youtube.com/watch?v=GPvFHpecW0Q", "thumb": "https://img.youtube.com/vi/GPvFHpecW0Q/mqdefault.jpg"}, {"index": 8, "title": "20220717溪頭之旅", "id": "qGQ8nBoXhEE", "url": "https://www.youtube.com/watch?v=qGQ8nBoXhEE", "thumb": "https://img.youtube.com/vi/qGQ8nBoXhEE/mqdefault.jpg"}, {"index": 9, "title": "20220724淑芬旗津一日遊", "id": "MB3tjKgq-as", "url": "https://www.youtube.com/watch?v=MB3tjKgq-as", "thumb": "https://img.youtube.com/vi/MB3tjKgq-as/mqdefault.jpg"}, {"index": 10, "title": "20220728帶媽媽台東兩日遊", "id": "L0t-gkcOaT0", "url": "https://www.youtube.com/watch?v=L0t-gkcOaT0", "thumb": "https://img.youtube.com/vi/L0t-gkcOaT0/mqdefault.jpg"}, {"index": 11, "title": "20220803淑芬涵洞單人舞群", "id": "jyafXNfIxis", "url": "https://www.youtube.com/watch?v=jyafXNfIxis", "thumb": "https://img.youtube.com/vi/jyafXNfIxis/mqdefault.jpg"}, {"index": 12, "title": "20220831淑芬大學同學會", "id": "Vjc-UNlzmHE", "url": "https://www.youtube.com/watch?v=Vjc-UNlzmHE", "thumb": "https://img.youtube.com/vi/Vjc-UNlzmHE/mqdefault.jpg"}, {"index": 13, "title": "20220919高雄旗津", "id": "2Mshvigcf18", "url": "https://www.youtube.com/watch?v=2Mshvigcf18", "thumb": "https://img.youtube.com/vi/2Mshvigcf18/mqdefault.jpg"}, {"index": 14, "title": "20221009阿里山二延平活動", "id": "zOeb8lG-n4g", "url": "https://www.youtube.com/watch?v=zOeb8lG-n4g", "thumb": "https://img.youtube.com/vi/zOeb8lG-n4g/mqdefault.jpg"}, {"index": 15, "title": "20221119淑芬文化中心成果展", "id": "QQEkzCi4ZIE", "url": "https://www.youtube.com/watch?v=QQEkzCi4ZIE", "thumb": "https://img.youtube.com/vi/QQEkzCi4ZIE/mqdefault.jpg"}, {"index": 16, "title": "20221125獨立山阿里山小火車", "id": "eGX9lruedkQ", "url": "https://www.youtube.com/watch?v=eGX9lruedkQ", "thumb": "https://img.youtube.com/vi/eGX9lruedkQ/mqdefault.jpg"}, {"index": 17, "title": "20221212溪頭兩日遊", "id": "bOKZKe65u_4", "url": "https://www.youtube.com/watch?v=bOKZKe65u_4", "thumb": "https://img.youtube.com/vi/bOKZKe65u_4/mqdefault.jpg"}, {"index": 18, "title": "20221219新竹家庭旅遊", "id": "_bdIrcayumg", "url": "https://www.youtube.com/watch?v=_bdIrcayumg", "thumb": "https://img.youtube.com/vi/_bdIrcayumg/mqdefault.jpg"}]}, {"id": "PLJeGYJMP2oDI", "title": "2023年陳家照片回憶錄", "desc": "民國112年家人生活與旅遊回憶", "year": "2023", "url": "https://www.youtube.com/playlist?list=PLJeGYJMP2oDI", "count": 11, "videos": [{"index": 1, "title": "2023各地自由行", "id": "bEmEEdsYvk8", "url": "https://www.youtube.com/watch?v=bEmEEdsYvk8", "thumb": "https://img.youtube.com/vi/bEmEEdsYvk8/mqdefault.jpg"}, {"index": 2, "title": "20230212台中新社賞花", "id": "p7yiQwo8uV0", "url": "https://www.youtube.com/watch?v=p7yiQwo8uV0", "thumb": "https://img.youtube.com/vi/p7yiQwo8uV0/mqdefault.jpg"}, {"index": 3, "title": "20230228一貫道神威天台山", "id": "fYst9dAc2K4", "url": "https://www.youtube.com/watch?v=fYst9dAc2K4", "thumb": "https://img.youtube.com/vi/fYst9dAc2K4/mqdefault.jpg"}, {"index": 4, "title": "20230527淑芬舞蹈活動", "id": "EB-uvEukTFE", "url": "https://www.youtube.com/watch?v=EB-uvEukTFE", "thumb": "https://img.youtube.com/vi/EB-uvEukTFE/mqdefault.jpg"}, {"index": 5, "title": "20230827屏東神山一日遊", "id": "ZDXhjxrLchU", "url": "https://www.youtube.com/watch?v=ZDXhjxrLchU", "thumb": "https://img.youtube.com/vi/ZDXhjxrLchU/mqdefault.jpg"}, {"index": 6, "title": "20230922淑芬同学會", "id": "HSfG6mDdqlg", "url": "https://www.youtube.com/watch?v=HSfG6mDdqlg", "thumb": "https://img.youtube.com/vi/HSfG6mDdqlg/mqdefault.jpg"}, {"index": 7, "title": "20231010民主里嘉義一日遊", "id": "s2JaHWsGrtI", "url": "https://www.youtube.com/watch?v=s2JaHWsGrtI", "thumb": "https://img.youtube.com/vi/s2JaHWsGrtI/mqdefault.jpg"}, {"index": 8, "title": "20231021台北師大40年同學會", "id": "1QOfPjg_rVg", "url": "https://www.youtube.com/watch?v=1QOfPjg_rVg", "thumb": "https://img.youtube.com/vi/1QOfPjg_rVg/mqdefault.jpg"}, {"index": 9, "title": "20231105彌陀縲底山", "id": "sjpPtpfKbic", "url": "https://www.youtube.com/watch?v=sjpPtpfKbic", "thumb": "https://img.youtube.com/vi/sjpPtpfKbic/mqdefault.jpg"}, {"index": 10, "title": "20231112民主里東石一日遊", "id": "AAvCmV7hFc0", "url": "https://www.youtube.com/watch?v=AAvCmV7hFc0", "thumb": "https://img.youtube.com/vi/AAvCmV7hFc0/mqdefault.jpg"}, {"index": 11, "title": "20231209清境二日遊", "id": "PMs_5BS2YhM", "url": "https://www.youtube.com/watch?v=PMs_5BS2YhM", "thumb": "https://img.youtube.com/vi/PMs_5BS2YhM/mqdefault.jpg"}]}, {"id": "PLPbAuE546_RQ", "title": "2024年陳家照片回憶錄", "desc": "民國113年家人生活與旅遊回憶", "year": "2024", "url": "https://www.youtube.com/playlist?list=PLPbAuE546_RQ", "count": 17, "videos": [{"index": 1, "title": "2024家人生活", "id": "kFp6aeowLj8", "url": "https://www.youtube.com/watch?v=kFp6aeowLj8", "thumb": "https://img.youtube.com/vi/kFp6aeowLj8/mqdefault.jpg"}, {"index": 2, "title": "20221124屏東市自由行", "id": "qeOvT5QEcT4", "url": "https://www.youtube.com/watch?v=qeOvT5QEcT4", "thumb": "https://img.youtube.com/vi/qeOvT5QEcT4/mqdefault.jpg"}, {"index": 3, "title": "20240115年度家庭旅遊-台東二日遊", "id": "U5c25N4ThTo", "url": "https://www.youtube.com/watch?v=U5c25N4ThTo", "thumb": "https://img.youtube.com/vi/U5c25N4ThTo/mqdefault.jpg"}, {"index": 4, "title": "20240316遊輪至沖繩旅遊", "id": "CEVv8xk5q-4", "url": "https://www.youtube.com/watch?v=CEVv8xk5q-4", "thumb": "https://img.youtube.com/vi/CEVv8xk5q-4/mqdefault.jpg"}, {"index": 5, "title": "20240512新疆旅遊", "id": "YRM-Zq_BMew", "url": "https://www.youtube.com/watch?v=YRM-Zq_BMew", "thumb": "https://img.youtube.com/vi/YRM-Zq_BMew/mqdefault.jpg"}, {"index": 6, "title": "20240602民主里新化農場一日遊", "id": "OUevs-FIxS4", "url": "https://www.youtube.com/watch?v=OUevs-FIxS4", "thumb": "https://img.youtube.com/vi/OUevs-FIxS4/mqdefault.jpg"}, {"index": 7, "title": "20240627大陸探親", "id": "uSAGCqjR0DA", "url": "https://www.youtube.com/watch?v=uSAGCqjR0DA", "thumb": "https://img.youtube.com/vi/uSAGCqjR0DA/mqdefault.jpg"}, {"index": 8, "title": "20240829澳門旅遊", "id": "rWpFNltFHeo", "url": "https://www.youtube.com/watch?v=rWpFNltFHeo", "thumb": "https://img.youtube.com/vi/rWpFNltFHeo/mqdefault.jpg"}, {"index": 9, "title": "20240912大崗山", "id": "9IFdHmcgqHA", "url": "https://www.youtube.com/watch?v=9IFdHmcgqHA", "thumb": "https://img.youtube.com/vi/9IFdHmcgqHA/mqdefault.jpg"}, {"index": 10, "title": "20240930民主里溪頭一日遊", "id": "vzMVmYnbMlA", "url": "https://www.youtube.com/watch?v=vzMVmYnbMlA", "thumb": "https://img.youtube.com/vi/vzMVmYnbMlA/mqdefault.jpg"}, {"index": 11, "title": "20241019中正大學同學會", "id": "pj97M9a6Qeo", "url": "https://www.youtube.com/watch?v=pj97M9a6Qeo", "thumb": "https://img.youtube.com/vi/pj97M9a6Qeo/mqdefault.jpg"}, {"index": 12, "title": "20241102杏儒結婚", "id": "leQGrOvfO0s", "url": "https://www.youtube.com/watch?v=leQGrOvfO0s", "thumb": "https://img.youtube.com/vi/leQGrOvfO0s/mqdefault.jpg"}, {"index": 13, "title": "20241109香港自由行", "id": "uRgZOC0ElEQ", "url": "https://www.youtube.com/watch?v=uRgZOC0ElEQ", "thumb": "https://img.youtube.com/vi/uRgZOC0ElEQ/mqdefault.jpg"}, {"index": 14, "title": "20241128海生館自由行", "id": "pNUSjy919eM", "url": "https://www.youtube.com/watch?v=pNUSjy919eM", "thumb": "https://img.youtube.com/vi/pNUSjy919eM/mqdefault.jpg"}, {"index": 15, "title": "20241207安平小學同學會", "id": "XK7eK6O_KK0", "url": "https://www.youtube.com/watch?v=XK7eK6O_KK0", "thumb": "https://img.youtube.com/vi/XK7eK6O_KK0/mqdefault.jpg"}, {"index": 16, "title": "20241209與黃順遠日月潭活動", "id": "n9M3W46z0uA", "url": "https://www.youtube.com/watch?v=n9M3W46z0uA", "thumb": "https://img.youtube.com/vi/n9M3W46z0uA/mqdefault.jpg"}, {"index": 17, "title": "20241222安平一日遊", "id": "RSl3vHqjVEM", "url": "https://www.youtube.com/watch?v=RSl3vHqjVEM", "thumb": "https://img.youtube.com/vi/RSl3vHqjVEM/mqdefault.jpg"}]}, {"id": "PLCZQXKfVwCoo", "title": "2025年陳家照片回憶錄", "desc": "民國114年家人生活與旅遊回憶", "year": "2025", "url": "https://www.youtube.com/playlist?list=PLCZQXKfVwCoo", "count": 30, "videos": [{"index": 1, "title": "20250104梅山口自由行", "id": "o5hwfoUqiMo", "url": "https://www.youtube.com/watch?v=o5hwfoUqiMo", "thumb": "https://img.youtube.com/vi/o5hwfoUqiMo/mqdefault.jpg"}, {"index": 2, "title": "20250111西子灣自由行", "id": "bTtv4nqu_tI", "url": "https://www.youtube.com/watch?v=bTtv4nqu_tI", "thumb": "https://img.youtube.com/vi/bTtv4nqu_tI/mqdefault.jpg"}, {"index": 3, "title": "20250118&0405家庭聚餐", "id": "V2sco6I5giE", "url": "https://www.youtube.com/watch?v=V2sco6I5giE", "thumb": "https://img.youtube.com/vi/V2sco6I5giE/mqdefault.jpg"}, {"index": 4, "title": "20250120大崗山自由行", "id": "UzQc4zmGteE", "url": "https://www.youtube.com/watch?v=UzQc4zmGteE", "thumb": "https://img.youtube.com/vi/UzQc4zmGteE/mqdefault.jpg"}, {"index": 5, "title": "20250223屏東火車園區", "id": "r7P73X86Wjk", "url": "https://www.youtube.com/watch?v=r7P73X86Wjk", "thumb": "https://img.youtube.com/vi/r7P73X86Wjk/mqdefault.jpg"}, {"index": 6, "title": "20250228九族文化園區", "id": "0oPAJ_vw-sw", "url": "https://www.youtube.com/watch?v=0oPAJ_vw-sw", "thumb": "https://img.youtube.com/vi/0oPAJ_vw-sw/mqdefault.jpg"}, {"index": 7, "title": "20250302屏東菸葉館", "id": "Cx3IHmQTSFw", "url": "https://www.youtube.com/watch?v=Cx3IHmQTSFw", "thumb": "https://img.youtube.com/vi/Cx3IHmQTSFw/mqdefault.jpg"}, {"index": 8, "title": "20250309大崗山活動", "id": "grw8HJtO5NE", "url": "https://www.youtube.com/watch?v=grw8HJtO5NE", "thumb": "https://img.youtube.com/vi/grw8HJtO5NE/mqdefault.jpg"}, {"index": 9, "title": "20250312後壁蘭花展", "id": "-VuxFpckJV0", "url": "https://www.youtube.com/watch?v=-VuxFpckJV0", "thumb": "https://img.youtube.com/vi/-VuxFpckJV0/mqdefault.jpg"}, {"index": 10, "title": "20250314&31雙流一日遊", "id": "2K2vWui3UH0", "url": "https://www.youtube.com/watch?v=2K2vWui3UH0", "thumb": "https://img.youtube.com/vi/2K2vWui3UH0/mqdefault.jpg"}, {"index": 11, "title": "20250316竹田火車站", "id": "nwxxirBFlDQ", "url": "https://www.youtube.com/watch?v=nwxxirBFlDQ", "thumb": "https://img.youtube.com/vi/nwxxirBFlDQ/mqdefault.jpg"}, {"index": 12, "title": "20250317越南旅遊之一", "id": "yp-wQogek_Y", "url": "https://www.youtube.com/watch?v=yp-wQogek_Y", "thumb": "https://img.youtube.com/vi/yp-wQogek_Y/mqdefault.jpg"}, {"index": 13, "title": "20250317越南旅遊之三", "id": "IkqO8Vojh1U", "url": "https://www.youtube.com/watch?v=IkqO8Vojh1U", "thumb": "https://img.youtube.com/vi/IkqO8Vojh1U/mqdefault.jpg"}, {"index": 14, "title": "20250317越南旅遊之二", "id": "pguFvPq3lq4", "url": "https://www.youtube.com/watch?v=pguFvPq3lq4", "thumb": "https://img.youtube.com/vi/pguFvPq3lq4/mqdefault.jpg"}, {"index": 15, "title": "20250317越南旅遊之四", "id": "Yc9EYbNPsLk", "url": "https://www.youtube.com/watch?v=Yc9EYbNPsLk", "thumb": "https://img.youtube.com/vi/Yc9EYbNPsLk/mqdefault.jpg"}, {"index": 16, "title": "20250406彰化成美園區及媽祖繞境", "id": "KLYjx1fSQ88", "url": "https://www.youtube.com/watch?v=KLYjx1fSQ88", "thumb": "https://img.youtube.com/vi/KLYjx1fSQ88/mqdefault.jpg"}, {"index": 17, "title": "20250415澳洲自由行之一", "id": "uDu1vPyUzMQ", "url": "https://www.youtube.com/watch?v=uDu1vPyUzMQ", "thumb": "https://img.youtube.com/vi/uDu1vPyUzMQ/mqdefault.jpg"}, {"index": 18, "title": "20250415澳洲自由行之三", "id": "WykOCZ7y2no", "url": "https://www.youtube.com/watch?v=WykOCZ7y2no", "thumb": "https://img.youtube.com/vi/WykOCZ7y2no/mqdefault.jpg"}, {"index": 19, "title": "20250415澳洲自由行之二", "id": "jMjrAqkHLyc", "url": "https://www.youtube.com/watch?v=jMjrAqkHLyc", "thumb": "https://img.youtube.com/vi/jMjrAqkHLyc/mqdefault.jpg"}, {"index": 20, "title": "20250520阿里山水山行", "id": "oaZYcOZA-O4", "url": "https://www.youtube.com/watch?v=oaZYcOZA-O4", "thumb": "https://img.youtube.com/vi/oaZYcOZA-O4/mqdefault.jpg"}, {"index": 21, "title": "20250607屏東白賓山一日遊", "id": "yNYTKSSOYxI", "url": "https://www.youtube.com/watch?v=yNYTKSSOYxI", "thumb": "https://img.youtube.com/vi/yNYTKSSOYxI/mqdefault.jpg"}, {"index": 22, "title": "20250630台東池上兩日遊", "id": "TSTRwPdxkWo", "url": "https://www.youtube.com/watch?v=TSTRwPdxkWo", "thumb": "https://img.youtube.com/vi/TSTRwPdxkWo/mqdefault.jpg"}, {"index": 23, "title": "20250809阿里山一日遊", "id": "HJdzKwDjfgo", "url": "https://www.youtube.com/watch?v=HJdzKwDjfgo", "thumb": "https://img.youtube.com/vi/HJdzKwDjfgo/mqdefault.jpg"}, {"index": 24, "title": "20250907雲南昆明大理之旅之一", "id": "B4V5vSs67UY", "url": "https://www.youtube.com/watch?v=B4V5vSs67UY", "thumb": "https://img.youtube.com/vi/B4V5vSs67UY/mqdefault.jpg"}, {"index": 25, "title": "20250907雲南昆明大理之旅之三", "id": "qsHeyoPBQdc", "url": "https://www.youtube.com/watch?v=qsHeyoPBQdc", "thumb": "https://img.youtube.com/vi/qsHeyoPBQdc/mqdefault.jpg"}, {"index": 26, "title": "20250907雲南昆明大理之旅之二", "id": "-JUmRoZUS-4", "url": "https://www.youtube.com/watch?v=-JUmRoZUS-4", "thumb": "https://img.youtube.com/vi/-JUmRoZUS-4/mqdefault.jpg"}, {"index": 27, "title": "20251016與潘老師一日遊", "id": "VepOVso0mTY", "url": "https://www.youtube.com/watch?v=VepOVso0mTY", "thumb": "https://img.youtube.com/vi/VepOVso0mTY/mqdefault.jpg"}, {"index": 28, "title": "20251020屏東雙流一日遊", "id": "XfXB3NE_Xqo", "url": "https://www.youtube.com/watch?v=XfXB3NE_Xqo", "thumb": "https://img.youtube.com/vi/XfXB3NE_Xqo/mqdefault.jpg"}, {"index": 29, "title": "20251026駁二真愛碼頭", "id": "xIH9uqXVfyc", "url": "https://www.youtube.com/watch?v=xIH9uqXVfyc", "thumb": "https://img.youtube.com/vi/xIH9uqXVfyc/mqdefault.jpg"}, {"index": 30, "title": "20251221建築臺東之旅", "id": "5D7KJybt2lU", "url": "https://www.youtube.com/watch?v=5D7KJybt2lU", "thumb": "https://img.youtube.com/vi/5D7KJybt2lU/mqdefault.jpg"}]}];
+
+    const mainContainer = document.getElementById('mainContainer');
+    const yearTabs = document.getElementById('yearTabs');
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const videoModal = document.getElementById('videoModal');
+    const modalIframe = document.getElementById('modalIframe');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalYtBtn = document.getElementById('modalYtBtn');
+    const modalCopyBtn = document.getElementById('modalCopyBtn');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const toast = document.getElementById('toast');
+    const fabTop = document.getElementById('fabTop');
+
+    let currentYearFilter = 'ALL';
+    let currentSearchQuery = '';
+    let currentActiveVideo = null;
+
+    // Initialize Year Tabs
+    function initTabs() {
+      PLAYLISTS.forEach(pl => {
+        const btn = document.createElement('button');
+        btn.className = 'year-tab-btn';
+        btn.dataset.year = pl.year;
+        btn.textContent = pl.year;
+        yearTabs.appendChild(btn);
+      });
+
+      yearTabs.addEventListener('click', (e) => {
+        if (e.target.classList.contains('year-tab-btn')) {
+          document.querySelectorAll('.year-tab-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          currentYearFilter = e.target.dataset.year;
+          render();
+        }
+      });
+    }
+
+    // Show Toast
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    // Copy to Clipboard
+    function copyText(text, successMsg = '✅ 連結已複製！可直接貼到 LINE 傳給家人') {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast(successMsg);
+      }).catch(() => {
+        const el = document.createElement('textarea');
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        showToast(successMsg);
+      });
+    }
+
+    // Open Modal Player
+    function openPlayer(video) {
+      currentActiveVideo = video;
+      modalTitle.textContent = video.title;
+      modalIframe.src = `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`;
+      modalYtBtn.onclick = () => window.open(video.url, '_blank');
+      modalCopyBtn.onclick = () => copyText(video.url);
+      videoModal.classList.add('open');
+    }
+
+    function closePlayer() {
+      videoModal.classList.remove('open');
+      modalIframe.src = '';
+      currentActiveVideo = null;
+    }
+
+    modalCloseBtn.addEventListener('click', closePlayer);
+    videoModal.addEventListener('click', (e) => {
+      if (e.target === videoModal) closePlayer();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePlayer();
+    });
+
+    // Render Playlists and Videos
+    function render() {
+      mainContainer.innerHTML = '';
+      const query = currentSearchQuery.trim().toLowerCase();
+
+      let matchCount = 0;
+
+      PLAYLISTS.forEach(pl => {
+        // Filter by year
+        if (currentYearFilter !== 'ALL' && pl.year !== currentYearFilter) {
+          return;
+        }
+
+        // Filter videos by search query
+        const matchedVideos = pl.videos.filter(v => {
+          if (!query) return true;
+          return v.title.toLowerCase().includes(query) || pl.title.toLowerCase().includes(query) || pl.desc.toLowerCase().includes(query);
+        });
+
+        if (matchedVideos.length === 0) return;
+        matchCount += matchedVideos.length;
+
+        // Build section element
+        const section = document.createElement('section');
+        section.className = 'playlist-section';
+        section.id = `pl-${pl.year}`;
+
+        const headerHtml = `
+          <div class="playlist-header">
+            <div class="playlist-title-area">
+              <h2>📺 《${pl.title}》</h2>
+              <p>${pl.desc} · 共 ${pl.count} 部影片</p>
+            </div>
+            <div class="playlist-actions">
+              <a href="${pl.url}" target="_blank" class="btn btn-gold">
+                ▶️ 一鍵開啟整年播放清單
+              </a>
+              <button class="btn btn-secondary copy-pl-btn" data-url="${pl.url}">
+                📋 複製清單網址
+              </button>
+            </div>
+          </div>
+        `;
+
+        let cardsHtml = '<div class="video-grid">';
+        matchedVideos.forEach(v => {
+          cardsHtml += `
+            <div class="video-card" data-id="${v.id}">
+              <div class="thumb-box" data-action="play">
+                <img class="thumb-img" src="${v.thumb}" alt="${v.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&auto=format&fit=crop&q=60'">
+                <div class="play-badge">▶</div>
+                <div class="hd-badge">1080p HD</div>
+              </div>
+              <div class="video-info">
+                <div class="video-title" data-action="play">${v.title}</div>
+                <div class="card-actions">
+                  <button class="btn btn-gold btn-card" data-action="play">▶ 播放</button>
+                  <a href="${v.url}" target="_blank" class="btn btn-secondary btn-card" title="在 YouTube 中開啟">↗ YouTube</a>
+                  <button class="btn btn-secondary btn-card copy-v-btn" data-url="${v.url}" title="複製網址">📋 複製</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        cardsHtml += '</div>';
+
+        section.innerHTML = headerHtml + cardsHtml;
+        mainContainer.appendChild(section);
+      });
+
+      if (matchCount === 0) {
+        mainContainer.innerHTML = `
+          <div style="text-align: center; padding: 4rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+            <h3>找不到包含「${currentSearchQuery}」的相片或影片</h3>
+            <p style="margin-top: 6px;">請嘗試更換關鍵字，例如「旗山」、「九族」、「自由行」或年份</p>
+          </div>
+        `;
+      }
+
+      // Bind events inside cards
+      document.querySelectorAll('.copy-pl-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          copyText(btn.dataset.url, '✅ 播放清單網址已複製！整年份影片一次看');
+        };
+      });
+
+      document.querySelectorAll('.copy-v-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          copyText(btn.dataset.url, '✅ 影片網址已複製！可貼到 LINE 分享');
+        };
+      });
+
+      document.querySelectorAll('.video-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.copy-v-btn') || e.target.closest('a')) return;
+          const vid = card.dataset.id;
+          // Find video object
+          for (let pl of PLAYLISTS) {
+            const v = pl.videos.find(x => x.id === vid);
+            if (v) {
+              openPlayer(v);
+              break;
+            }
+          }
+        });
+      });
+    }
+
+    // Search events
+    searchInput.addEventListener('input', (e) => {
+      currentSearchQuery = e.target.value;
+      clearBtn.style.display = currentSearchQuery ? 'block' : 'none';
+      render();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      currentSearchQuery = '';
+      clearBtn.style.display = 'none';
+      render();
+      searchInput.focus();
+    });
+
+    // Back to top
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 300) {
+        fabTop.classList.add('show');
+      } else {
+        fabTop.classList.remove('show');
+      }
+    });
+
+    fabTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Init on load
+    initTabs();
+    render();
+  </script>
+</body>
+</html>
