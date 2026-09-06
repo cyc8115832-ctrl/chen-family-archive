@@ -53,10 +53,9 @@
       background: linear-gradient(180deg, rgba(28,30,36,0.95) 0%, rgba(18,19,22,0.85) 100%);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-color);
-      padding: 2.5rem 1.5rem 1.5rem;
+      padding: 2.2rem 1.5rem 1.2rem;
       text-align: center;
-      position: sticky;
-      top: 0;
+      position: relative;
       z-index: 100;
     }
 
@@ -113,7 +112,7 @@
 
     /* Search & Filter Controls */
     .controls {
-      max-width: 800px;
+      max-width: 960px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
@@ -162,29 +161,27 @@
       display: none;
     }
 
-    /* Year Tabs Pill Bar */
+    /* Year Tabs Pill Bar (Responsive Wrap into Neat Rows) */
     .year-tabs {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
       gap: 6px;
-      overflow-x: auto;
-      padding: 6px 4px;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-    }
-    .year-tabs::-webkit-scrollbar {
-      display: none;
+      padding: 6px 2px;
     }
 
     .year-tab-btn {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 999px;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
     .year-tab-btn:hover, .year-tab-btn.active {
       background: var(--gold-primary);
@@ -512,23 +509,102 @@
     /* Responsive */
     @media (max-width: 640px) {
       header {
-        padding: 1.5rem 1rem 1rem;
+        padding: 1.5rem 0.8rem 1rem;
+      }
+      .logo-badge {
+        font-size: 0.75rem;
+        padding: 3px 10px;
+        margin-bottom: 0.5rem;
       }
       h1 {
-        font-size: 1.45rem;
+        font-size: 1.4rem;
       }
-      .video-grid {
-        grid-template-columns: 1fr;
+      .subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 0.8rem;
+      }
+      .stats-bar {
+        gap: 0.6rem;
+        font-size: 0.78rem;
+        margin-bottom: 1rem;
+      }
+      .stat-item:last-child {
+        display: none;
+      }
+      .search-input {
+        font-size: 1rem;
+        padding: 10px 16px 10px 40px;
+      }
+      .year-tabs {
+        gap: 5px;
+        padding: 4px 0;
+      }
+      .year-tab-btn {
+        padding: 5px 9px;
+        font-size: 0.78rem;
+      }
+      main {
+        margin-top: 1rem;
+        padding: 0 0.6rem;
+      }
+      .playlist-section {
+        padding: 1rem 0.8rem;
+        margin-bottom: 1.5rem;
+        border-radius: 12px;
+      }
+      .playlist-title-area h2 {
+        font-size: 1.15rem;
       }
       .playlist-header {
         flex-direction: column;
+        gap: 0.8rem;
       }
       .playlist-actions {
         width: 100%;
+        flex-direction: column;
       }
       .playlist-actions .btn {
-        flex: 1;
+        width: 100%;
         justify-content: center;
+      }
+      .video-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .card-actions {
+        gap: 5px;
+      }
+      .btn-card {
+        padding: 8px 6px;
+        font-size: 0.78rem;
+      }
+      .modal-content {
+        max-width: 100%;
+        border-radius: 12px;
+      }
+      .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+        padding: 0.8rem 1rem;
+      }
+      .modal-title {
+        font-size: 0.95rem;
+      }
+      .modal-btns {
+        flex-direction: column;
+        width: 100%;
+      }
+      .modal-btns .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .fab-top {
+        bottom: 18px;
+        right: 18px;
+        width: 42px;
+        height: 42px;
+        font-size: 1rem;
       }
     }
   </style>
@@ -627,6 +703,9 @@
           e.target.classList.add('active');
           currentYearFilter = e.target.dataset.year;
           render();
+          if (window.innerWidth <= 640 || window.scrollY > 120) {
+            mainContainer.scrollIntoView({ behavior: 'smooth' });
+          }
         }
       });
     }
