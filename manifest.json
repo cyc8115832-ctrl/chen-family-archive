@@ -1,0 +1,26 @@
+{
+  "name": "陳家照片回憶錄",
+  "short_name": "陳家相簿",
+  "description": "陳家照片回憶錄 — 家庭專屬影音相簿",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#121316",
+  "theme_color": "#121316",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
